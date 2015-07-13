@@ -73,25 +73,25 @@
 				<section>
 					<h2>Example</h2>
 					<ul>
-						<li>See MyModule.scala</li>
-						<li>Side effect pushed to outer shell</li>
+						<li>See GettingStarted.java</li>
+						<li>Effect pushed to outer shell</li>
 						<li>Program is RT, since main is not called from program</li>
-						<li>Note type inference and immutable values</li>
+						<li>Note immutable values</li>
 					</ul>
 				</section>
 
                 <section>
                     <h2>Loops</h2>
-                    <pre><code>
+                    <pre><code class="java">
 // imperative factorial
-def factorial(n: Int): Int = {
-    var i = n
-    var result = 1
+static int factorial(int n) {
+    int i = n;
+    int result = 1;
     while (i > 1) {
-        result = result * i
-        i = i - 1
+        result = result * i;
+        i = i - 1;
     }
-    result
+    return result;
 }
                     </code></pre>
                 </section>
@@ -102,21 +102,19 @@ def factorial(n: Int): Int = {
 						<li>Recursive call in tail position</li>
 						<li>Tail call optimisation (TCO)</li>
 					</ul>
-					<pre><code>
-def factorial(n: Int): Int = {
-    if (n <= 1) 1
-    else n * factorial(n - 1)
+					<pre><code class="java">
+static int factorial(int n) {
+    return (n <= 1) ? 1 : n * factorial(n - 1);
 }
 // factorial(5) = 5 * factorial(4) = 5 * (4 * factorial(3)) = ...
 
-def fact(n: Int): Int = {
-    fact(n, 1)
+// tail call version
+static int fact(int n) {
+    return fact(n, 1);
 }
-
-def fact(n: Int, acc: Int): Int =
-    if (n <= 1) acc
-    else fact(n - 1, n * acc)
-
+static int fact(int n, int acc) {
+    return (n <= 1) ? acc : fact(n - 1, n * acc);
+}
 // fact(5, 1) = fact(4, 5 * 1) = fact(3, 4 * 5) = ...
 					</code></pre>
 
@@ -125,42 +123,37 @@ def fact(n: Int, acc: Int): Int =
 				<section>
 					<h2>Higher Order Functions</h2>
 					<pre><code>
-def abs(x: Int): Int = {
-	...
+static int abs(int x) { ... }
+
+static int factorial(int n) { ... }
+
+String formatResult(String name, int n, F&lt;Integer, Integer> f) {
+	String msg = "The %s of %d is %d.";
+	return msg.format(name, n, f.f(n));
 }
 
-def factorial(n: Int): Int = {
-	...
-}
-
-def formatResult(name: String, n: Int, f: Int => Int) = {
-	val msg = "The %s of %d is %d."
-	msg.format(name, n, f(n))
-}
-
-def main(args: Array[String]): Unit = {
-	println(formatResult("absolute value", -42, abs))
-	println(formatResult("factorial", 7, factorial))
+public static void main(String [] args) {
+	out.println(formatResult("absolute value", -42, x -> abs(x)))
+	out.println(formatResult("factorial", 7, ClassName::factorial))
 }
 					</code></pre>
 				</section>
 
 				<section>
 					<h2>Anonymous Functions</h2>
-					<pre><code>
-def main(args: Array[String]): Unit = {
-	println(formatResult("absolute value", -42, abs))
-	println(formatResult("factorial", 7, factorial))
-	println(formatResult("increment", 7, (x: Int) => x + 1))
-	println(formatResult("increment2", 7, (x) => x + 1))
-	println(formatResult("increment3", 7, x => x + 1))
-	println(formatResult("increment4", 7, _ + 1))
-	println(formatResult("increment5", 7, x => { val r = x + 1; r }))
+					<pre><code class="java">
+public static void main(String [] args) {
+	out.println(formatResult("absolute value", -42, ClassName::abs));
+	out.println(formatResult("factorial", 7, ClassName::factorial));
+	out.println(formatResult("increment", 7, (int x) -> x + 1));
+	out.println(formatResult("increment2", 7, (x) -> x + 1));
+	out.println(formatResult("increment3", 7, x -> x + 1);
+	out.println(formatResult("increment5", 7, x -> {
+			int r = x + 1;
+			return r;
+	}));
 }
 					</code></pre>
-					<ul>
-						<li>Syntactic sugar for Function1[Int, Int]</li>
-					</ul>
 				</section>
 
 				<section>
@@ -171,13 +164,13 @@ def main(args: Array[String]): Unit = {
 						<li>Takes a list of type parameters/variables</li>
 					</ul>
 					<pre><code>
-def isSorted[A](as: Array[A], gt: (A, A) => Boolean): Boolean
+static &lt;A> boolean isSorted(List&lt;A> as, F2&lt;A, A, Boolean> f) {...}
 
-def partial1[A,B,C](a: A, f: (A, B) => C): B => C
+static &lt;A, B, C> F&lt;B, C> partial1(A a, F2&lt;A, B, C> f) {...}
 
-def curry[A,B,C](f: (A, B) => C): A => (B => C)
+static &lt;A, B, C> F&lt;A, F&lt;B, C>> curry(F2&lt;A, B, C> f) {...}
 
-def compose[A,B,C](f: B => C, g: A => B): A => C
+static &lt;A, B, C> F&lt;A, C> andThen(F&lt;A, B> f, F&lt;B, C> g) {...}
 					</code></pre>
 				</section>
 
@@ -185,7 +178,7 @@ def compose[A,B,C](f: B => C, g: A => B): A => C
 					<h2>Summary</h2>
 					<ul>
 						<li>Learn basic FP concepts</li>
-						<li>Enough Scala to get going</li>
+						<li>Some simple Java</li>
 						<li>Recursion</li>
 						<li>Higher Order Functions</li>
 						<li>Polymorphism</li>
