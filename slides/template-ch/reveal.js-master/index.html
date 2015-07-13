@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Scala - An Introduction</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h2>Functional Programming in Scala</h2>
+					<h3>An Introduction</h3>
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+				<section>
+					<h2>Introduction</h2>
+                    <p>
+                    <ul>
+                        <li>Goal: Learn FP Scala</li>
+                        <li>Premise: Programs from pure functions</li>
+                        <li>Can feel strange - keep an open mind</li>
+                    </ul>
+                    </p>
+
+				</section>
+
+				<section>
+					<h2>The FP Road</h2>
+					<center>
+						<table>
+							<tr>
+								<td>
+									<li>Introduction</li>
+									<li>Data Structures</li>
+									<li>Errors without exceptions</li>
+									<li>Strictness and Laziness</li>
+									<li>Purely Functional State</li>
+									<li>Purely Functional Parrallelism</li>
+									<li>Property Based Testing</li>
+								</td>
+								<td>
+									<li>Parser Combinators</li>
+									<li>Monoids</li>
+									<li>Monads</li>
+									<li>Applicative Functors</li>
+									<li>External Effects and I/O</li>
+									<li>Local Effects and Mutable State</li>
+									<li>Stream Processing and Incremental I/O</li>
+								</td>
+							</tr>
+						</table>
+					</center>
+				</section>
+
+				<section>
+					<h2>Premise</h2>
+					<ul>
+						<li>Premise: Programs from pure functions</li>
+						<li>Using book, "Functional Programming in Scala"</li>
+						<li>FP is less powerful than imperative</li>
+						<li>Increased modularity</li>
+						<li>Easier to:
+                            <ul>
+                                <li>write</li>
+                                <li>test</li>
+                                <li>reuse</li>
+                                <li>reason</li>
+                                <li>scale</li>
+                            </ul>
+						<li>Effects aren't observed</li>
+
+					</ul>
+				</section>
+
+				<section>
+					<h2>Purity</h2>
+					<ul>
+						<li>every X has just one Y, f: X => Y</li>
+                        <img src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Multivalued_function.svg/200px-Multivalued_function.svg.png"/>
+						<li>intToString: Int => String</li>
+						<li><h2>and nothing else!</h2></li>
+
+
+                        <li>Referential transparency: replace expression with result</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Example</h2>
+					<ul>
+						<li>Replace expression with value</li>
+						<li>Equational reasoning</li>
+					</ul>
+					<pre><code>
+val x = "Hello world"
+val r1 = x.reverse
+val r2 = x.reverse
+					</code></pre>
+					<pre><code>
+// replace x with "Hello world"
+val r1 = "Hello world".reverse
+val r2 = "Hello world".reverse
+ 					</code></pre>
+				</section>
+				<section>
+					<h2>Non RT Example</h2>
+
+					<pre><code>
+val sb = new StringBuilder("Hello")
+val x = sb.append(" world").toString // "Hello world"
+val y = sb.toString // "Hello world"
+					</code></pre>
+					<pre><code>
+// replace sb with: new StringBuilder("Hello")
+val sb = new StringBuilder("Hello")
+val x = new StringBuilder("Hello").append(" world").toString // "Hello world"
+val y = new StringBuilder("Hello").toString // "Hello"
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Why FP?</h2>
+					<ul>
+						<li>Modularity: Components understood independently</li>
+						<li>Compositon: f(g(x)) = (f compose g)(x)</li>
+						<li>Whole system depends only on composition</li>
+						<li>Separate:
+							<ul>
+                                <li>Inputs</li>
+								<li>Computation logic</li>
+								<li>Result usage</li>
+
+							</ul>
+						</li>
+						<li>Can reuse computation without concern for effects</li>
+					</ul>
+				</section>
+
+                <section>
+                    <h2>Non RT System</h2>
+                    <ul>
+                        <img src="../../images/system.png" height="300">
+                    </ul>
+                </section>
+
+				<section>
+					<h2>Refunctoring</h2>
+					<pre><code class="scala">
+case class Player(name: String, score: Int)
+
+def declareWinner(p1: Player, p2: Player): Unit =
+    if (p1.score > p2.score) printWinner(p1)
+    else printWinner(p2)
+
+def printWinner(p: Player): Unit =
+    println(p.name + " is the winner!")
+					</code></pre>
+
+					<pre><code>
+def declareWinner(p1: Player, p2: Player): Unit =
+    printWinner(winner(p1, p2))
+
+def winner(p1: Player, p2: Player): Player =
+    if (p1.score > p2.score) p1 else p2
+
+					</code></pre>
+
+				</section>
+
+                <section>
+                    <h2>Better System</h2>
+                    <ul>
+                        <img src="../../images/pure-system.png" height="300">
+                    </ul>
+                </section>
+
+				<section>
+					<h2>Principles</h2>
+					<ul>
+						<li>Functions with side effects are split:
+							<ul>
+								<li>Pure function</li>
+								<li>Effect on IO</li>
+							</ul>
+						</li>
+						<li>Push effects to the outside</li>
+						<li>Pure, reusable inner core</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>What is FP</li>
+						<li>Why is FP important</li>
+						<li>Questions - how do we:</li>
+						<ul>
+							<li>write loops?</li>
+							<li>implement data structures?</li>
+							<li>deal with errors and exceptions?</li>
+							<li>handle input and output?</li>
+							<li>concurrency?</li>
+						</ul>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Afterword</h2>
+					<p>Functional Programming in Scala, Chiusano and Bjarnason, Chapter 1</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

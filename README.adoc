@@ -1,0 +1,4 @@
+
+= Functional Programming in Java
+ 
+This is a repository of talks based following the book "Functional Programming in Scala" by Chiusano and Bjarnason (http://www.manning.com/bjarnason/).  There is a github repository, [https://github.com/fpinscala/fpinscala](https://github.com/fpinscala/fpinscala), supporting the book.
