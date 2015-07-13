@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Java - Getting Started</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+                    <h2>Getting Started</h2>
+					<h3>Functional Programming in Java</h3>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+				<section>
+					<h2>Goals</h2>
+					<ul>
+						<li>Write programs by combining pure functions</li>
+						<li>Learn by immersion with examples</li>
+						<li>Higher order functions</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Example</h2>
+					<ul>
+						<li>See MyModule.scala</li>
+						<li>Side effect pushed to outer shell</li>
+						<li>Program is RT, since main is not called from program</li>
+						<li>Note type inference and immutable values</li>
+					</ul>
+				</section>
+
+                <section>
+                    <h2>Loops</h2>
+                    <pre><code>
+// imperative factorial
+def factorial(n: Int): Int = {
+    var i = n
+    var result = 1
+    while (i > 1) {
+        result = result * i
+        i = i - 1
+    }
+    result
+}
+                    </code></pre>
+                </section>
+				<section>
+					<h2>Loops Without Mutation</h2>
+					<ul>
+						<li>Recursive calls implement loop</li>
+						<li>Recursive call in tail position</li>
+						<li>Tail call optimisation (TCO)</li>
+					</ul>
+					<pre><code>
+def factorial(n: Int): Int = {
+    if (n <= 1) 1
+    else n * factorial(n - 1)
+}
+// factorial(5) = 5 * factorial(4) = 5 * (4 * factorial(3)) = ...
+
+def fact(n: Int): Int = {
+    fact(n, 1)
+}
+
+def fact(n: Int, acc: Int): Int =
+    if (n <= 1) acc
+    else fact(n - 1, n * acc)
+
+// fact(5, 1) = fact(4, 5 * 1) = fact(3, 4 * 5) = ...
+					</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Higher Order Functions</h2>
+					<pre><code>
+def abs(x: Int): Int = {
+	...
+}
+
+def factorial(n: Int): Int = {
+	...
+}
+
+def formatResult(name: String, n: Int, f: Int => Int) = {
+	val msg = "The %s of %d is %d."
+	msg.format(name, n, f(n))
+}
+
+def main(args: Array[String]): Unit = {
+	println(formatResult("absolute value", -42, abs))
+	println(formatResult("factorial", 7, factorial))
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Anonymous Functions</h2>
+					<pre><code>
+def main(args: Array[String]): Unit = {
+	println(formatResult("absolute value", -42, abs))
+	println(formatResult("factorial", 7, factorial))
+	println(formatResult("increment", 7, (x: Int) => x + 1))
+	println(formatResult("increment2", 7, (x) => x + 1))
+	println(formatResult("increment3", 7, x => x + 1))
+	println(formatResult("increment4", 7, _ + 1))
+	println(formatResult("increment5", 7, x => { val r = x + 1; r }))
+}
+					</code></pre>
+					<ul>
+						<li>Syntactic sugar for Function1[Int, Int]</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Polymorphic Functions</h2>
+					<ul>
+						<li>Previously monomorphic</li>
+						<li>Abstract over any type</li>
+						<li>Takes a list of type parameters/variables</li>
+					</ul>
+					<pre><code>
+def isSorted[A](as: Array[A], gt: (A, A) => Boolean): Boolean
+
+def partial1[A,B,C](a: A, f: (A, B) => C): B => C
+
+def curry[A,B,C](f: (A, B) => C): A => (B => C)
+
+def compose[A,B,C](f: B => C, g: A => B): A => C
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>Learn basic FP concepts</li>
+						<li>Enough Scala to get going</li>
+						<li>Recursion</li>
+						<li>Higher Order Functions</li>
+						<li>Polymorphism</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Afterword</h2>
+					<p>Functional Programming in Scala, Chiusano and Bjarnason, Chapter 2, Getting Started</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
