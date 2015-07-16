@@ -120,6 +120,25 @@ static int fact(int n, int acc) {
 
 				</section>
 
+
+                <section>
+                    <h2>Functions</h2>
+                    <ul>
+                        <li>Instantiate functions with lambda expression</li>
+                    </ul>
+
+					<pre><code>
+public interface F&lt;A, B> {
+    B f(A a);
+}
+
+Integer func(F&lt;Integer, Integer> f) {...}
+
+func(x -> x + 1);
+</code></pre>
+                </section>
+
+
 				<section>
 					<h2>Higher Order Functions</h2>
 					<pre><code>
@@ -143,14 +162,12 @@ public static void main(String [] args) {
 					<h2>Anonymous Functions</h2>
 					<pre><code class="java">
 public static void main(String [] args) {
-	out.println(formatResult("absolute value", -42, ClassName::abs));
-	out.println(formatResult("factorial", 7, ClassName::factorial));
 	out.println(formatResult("increment", 7, (int x) -> x + 1));
 	out.println(formatResult("increment2", 7, (x) -> x + 1));
 	out.println(formatResult("increment3", 7, x -> x + 1);
 	out.println(formatResult("increment5", 7, x -> {
-			int r = x + 1;
-			return r;
+	    int r = x + 1;
+		    return r;
 	}));
 }
 					</code></pre>

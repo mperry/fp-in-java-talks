@@ -192,7 +192,7 @@ String y = new StringBuilder("Hello").toString(); // "Hello"
 
 				<section>
 					<h2>Refunctoring</h2>
-					<pre><code class="java">
+<pre><code class="java">
 @Value.Immutable
 interface Player {
 	String name();
@@ -200,22 +200,26 @@ interface Player {
 }
 
 void declareWinner(Player p1, Player p2) {
-    p1.score() > p2.score() ? printWinner(p1) : printWinner(p2);
+    if (p1.score() > p2.score()) {
+        printWinner(p1);
+    } else {
+        printWinner(p2);
+    }
 }
 
 void printWinner(Player p) {
-    out.println(p.name() + " is the winner!")
-					</code></pre>
+    out.println(p.name() + " is the winner!");
+}
+</code></pre>
 
-					<pre><code class="java">
+<pre><code class="java">
 void declareWinner(Player p1, Player p2) {
     printWinner(winner(p1, p2))
 }
 
 Player winner(Player p1, Player p2) {
     return p1.score() > p2.score() ? p1 : p2;
-}
-					</code></pre>
+}</code></pre>
 
 				</section>
 
@@ -240,7 +244,21 @@ Player winner(Player p1, Player p2) {
 					</ul>
 				</section>
 
-				<section>
+                <section>
+                    <h2>Imperative</h2>
+                    <ul>
+                        <li>Java standard library</li>
+                        <li>exceptions</li>
+                        <li>variables</li>
+                        <li>null</li>
+                        <li>setters</li>
+                        <li>reflection</li>
+                        <li>instanceof</li>
+                        <li>void</li>
+                    </ul>
+                </section>
+
+                <section>
 					<h2>Summary</h2>
 					<ul>
 						<li>What is FP</li>
