@@ -37,8 +37,8 @@
 			<div class="slides">
 
 				<section>
-                    <h2>Getting Started</h2>
-					<h3>Functional Programming in Java</h3>
+                    <h2>Functional Programming in Java</h2>
+                    <h3>Getting Started</h3>
 
 					<p>
 						<small>
@@ -132,9 +132,17 @@ public interface F&lt;A, B> {
     B f(A a);
 }
 
-Integer func(F&lt;Integer, Integer> f) {...}
+void func(F&lt;Integer, Integer> f) {...}
 
+// Java 8
 func(x -> x + 1);
+
+// Java 7
+func(new F&lt;Integer, Integer>(){
+    public void f(Integer i) {
+        return i + 1;
+    }
+});
 </code></pre>
                 </section>
 
@@ -182,6 +190,8 @@ public static void main(String [] args) {
 					</ul>
 					<pre><code>
 static &lt;A> boolean isSorted(List&lt;A> as, F2&lt;A, A, Boolean> f) {...}
+
+static &lt;A, B> B fold(List&lt;A> as, F2&lt;B, A, B> f, B b) {...}
 
 static &lt;A, B, C> F&lt;B, C> partial1(A a, F2&lt;A, B, C> f) {...}
 
