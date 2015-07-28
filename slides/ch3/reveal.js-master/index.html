@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Java - Functional Data Structures</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+                    <h2>Functional Data Structures</h2>
+					<h4>Functional Programming in Java</h4>
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+
+				<section>
+					<h2>Introduction</h2>
+					<ul>
+						<li>FP emphasises not updating data</li>
+						<li>Alternative?</li>
+						<li>Pure functions</li>
+					</ul>
+				</section>
+
+                <section>
+                    <h2>Referential Transparency</h2>
+
+<pre><code>
+    // updating is not referentially transparent
+    List&lt;Integer> list = new LinkedList<>();
+    list.add(1);
+    List&lt;Integer> list2 = list; // [1]
+</pre></code>
+
+<pre><code>
+	new LinkedList<>().add(1);
+	List&lt;Integer> list2 = new LinkedList<>(); // []
+</pre></code>
+
+                </section>
+
+                <section>
+                    <h2>Functional Data Structures</h2>
+                    <ul>
+                        <li>Values are immutable!</li>
+                        <li>Use pure functions</li>
+                        <li>Data copying issue?</li>
+                    </ul>
+                </section>
+
+                <section>
+					<h2>Linked List</h2>
+<pre><code>abstract class List&lt;A> {
+	abstract A head();
+	abstract List&lt;A> tail();
+
+	static List&lt;A> nil() {...}
+	static List&lt;A> cons(A h, List&lt;A> t) {...}
+	static List&lt;A> list(A...as) {...}
+}
+
+class Nil&lt;A> extends List&lt;A> {...}
+class Cons&lt;A> extends List&lt;A> {...}
+
+List&ltA> a = nil();
+List&ltA> b = cons(1, nil());
+List&ltA> c = cons(1, cons(2, nil()));
+List&ltA> d = cons(1, cons(2, cons(3, nil())));
+List&ltA> e = list(1, 2, 3);
+</pre></code>
+				</section>
+
+
+				<section>
+					<h2>Immutable Structures</h2>
+					<ul>
+                        <li>Copy?</li>
+						<li>Reuse list due to immutability</li>
+						<li>Data sharing</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>List Sharing</h2>
+					<pre><code>
+List&lt;A> xs = list(0, 1, 2);
+List&lt;A> ys = list(3, 4, 5);
+List&lt;A> zs = xs.append(ys) // [0, 1, 2, 3, 4, 5]
+					</code></pre>
+
+					<table cellspacing="40">
+						<tr>
+							<td><img src="images/list_before.png"/></td>
+							<td><img src="images/list_after.png" height="400"/></td>
+
+						</tr>
+					</table>
+					<!--<img src="images/list_before.png"/>-->
+					<!--<img src="images/list_after.png" height="350"/>-->
+
+				</section>
+
+
+				<section>
+					<h2>Tree Insertion</h2>
+<pre><code>
+Tree&lt;A> xs = ??? // a tree
+Tree&lt;A> ys = xs.insert("e")
+</code></pre>
+					<img src="images/tree_before.png"/>
+					<!--<img src="images/tree_after.png"/>-->
+				</section>
+
+				<section>
+					<h2>Tree Insertion (2)</h2>
+<pre><code>
+Tree&lt;A> xs = ??? // a tree
+Tree&lt;A> ys = xs.insert("e")
+</code></pre>
+					<img src="images/tree_before.png"/>
+					<img src="images/tree_after.png"/>
+				</section>
+
+                <section>
+                    <h2>Data Sharing</h2>
+                    <ul>
+                        <li>Efficiency from data sharing</li>
+                        <li>Often needs tree structures</li>
+                        <li>Scala Vector, O(1)
+                            <ul>
+                                <li>random access</li>
+                                <li>update</li>
+                                <li>prepend, append</li>
+                                <li>head, tail</li>
+                            </ul>
+                        </li>
+                        <li>Vector Trie</li>
+
+                    </ul>
+                    <img src="images/data.jpg" width="150"/>
+                </section>
+
+                <section>
+                    <h2>Pattern Matching</h2>
+<pre><code>
+sealed trait List[+A]
+case object Nil extends List[Nothing]
+case class Cons[+A](head: A, tail: List[A]) extends List[A]
+
+val list = List(1, 2, 3)
+list match { case _ => 42 } // 42
+list match { case Cons(h, t) => h } // 1
+list match { case Cons(_, t) => t } // List(2, 3)
+Nil match { case Nil => 42 }
+</code></pre>
+                </section>
+
+
+                <section>
+					<h2>Pattern Matching</h2>
+					<pre><code>
+sealed trait List[+A]
+case object Nil extends List[Nothing]
+case class Cons[+A](head: A, tail: List[A]) extends List[A]
+
+def sum(ints: List[Int]): Int = {
+    ints match {
+        case Nil => 0
+        case Cons(x, xs) => x + sum(xs)
+    }
+}
+
+def product(ds: List[Double]): Double = {
+    ds match {
+        case Nil => 1.0
+        case Cons(x, xs) => x * product(xs)
+    }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Exercises</h2>
+					<ul>
+						<li>Implement tail</li>
+						<li>Generalise tail to dropWhile</li>
+					</ul>
+					<pre><code>
+def tail[A](l: List[A]): List[A]
+def dropWhile[A](l: List[A], f: A => Boolean): List[A]
+					</code></pre>
+				</section>
+
+
+				<section>
+					<h2>Recursion over Lists</h2>
+					Look similar?
+					<pre><code>
+def sum(list: List[Int]): Int = {
+    list match {
+        case Nil => 0
+        case Cons(x, xs) => x + sum(xs)
+    }
+}
+def product(list: List[Double]): Double = {
+    list match {
+        case Nil => 1
+        case Cons(x, xs) => x * product(xs)
+    }
+}
+					</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Fold</h2>
+<pre><code>
+def fold[A,B](list: List[A], acc: B, f: (A, B) => B): B = ???
+
+def sum2(list: List[Int]) = {
+    fold(list, 0, _ + _)
+}
+def product2(list: List[Double]) = {
+    fold(list, 1, _ * _)
+}
+</code></pre>
+				</section>
+
+                <section>
+                    <h2>Fold Left</h2>
+<pre><code>
+def foldLeft[A,B](list: List[A], acc: B, f: (A, B) => B): B = {
+    list match {
+        case Nil => acc
+        case Cons(x, xs) => foldLeft(xs, f(x, acc), f)
+    }
+}
+
+foldLeft(List(1, 4, 9), 0, _ + _)
+foldLeft(List(4, 9), 1 + 0, _ + _)
+foldLeft(List(9), 4 + 1, _ + _)
+foldLeft(Nil, 9 + 5, _ + _)
+14
+</code></pre>
+                </section>
+
+
+                <section>
+                    <h2>Fold Right</h2>
+<pre><code>
+def foldRight[A,B](list: List[A], acc: B, f: (A, B) => B): B = {
+    list match {
+        case Nil => acc
+        case Cons(x, xs) => f(x, foldRight(xs, acc, f))
+    }
+}
+
+foldRight(List(1, 4, 9), 0, _ + _)
+1 + foldRight(List(4, 9), 0, _ + _)
+1 + (4 + foldRight(List(9), 0, _ + _))
+1 + (4 + (9 + foldRight(Nil, 0, _ + _)))
+1 + (4 + (9 + (0)))
+14
+</code></pre>
+                </section>
+
+
+                <section>
+					<h2>Exercises</h2>
+<pre><code>
+def reverse[A](l: List[A]): List[A] = ???
+def map[A,B](l: List[A], f: A => B): List[B] = ???
+def flatten[A](l: List[List[A]]): List[A] = ???
+def flatMap[A,B](l: List[A], f: A => List[B]): List[B] = ???
+</code></pre>
+				</section>
+
+
+				<section>
+					<h2>Trees</h2>
+                    <img src="images/tree_before.png"/>
+<pre><code>
+sealed trait Tree[+A]
+case class Leaf extends Tree[Nothing]
+case class Branch[+A](left: Tree[A], node: A, right: Tree[A]) extends Tree[A]
+</code></pre>
+				</section>
+
+
+                <section>
+                    <h2>Growing Trees</h2>
+<pre><code>
+    val a = Leaf
+    val b = Branch(Leaf, 1, Leaf)
+    val c = Branch(Leaf, 1, Branch(Leaf, 2, Leaf))
+</code></pre>
+
+                </section>
+
+                    <section>
+                        <h2>Exercises</h2>
+<pre><code>
+def size[A](tree: Tree[A]): Int = ???
+def depth[A](tree: Tree[A]): Int = ???
+def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = ???
+def foldLeft[A, B](tree: Tree[A], f: (A, B) => B): B = ???
+def traverseLeft[A](tree: Tree[A]): List[A] = ???
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>Pattern Matching</li>
+						<li>Data Sharing</li>
+						<li>Practiced Pure Functions</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Afterword</h2>
+					<p>Functional Programming in Scala, Chiusano and Bjarnason, Chapter 3, Functional Data Structures</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

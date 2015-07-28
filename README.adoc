@@ -7,4 +7,5 @@ Raw Github chapter links:
 
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch1/reveal.js-master/index.html[Chapter 1 - Introduction]
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch2/reveal.js-master/index.html[Chapter 2 - Getting Started]
+* https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch3/reveal.js-master/index.html[Chapter 3 - Functional Data Structures]
 
