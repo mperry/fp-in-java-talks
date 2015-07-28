@@ -188,88 +188,52 @@ Tree&lt;A> ys = xs.insert("e")
                     <img src="images/data.jpg" width="150"/>
                 </section>
 
-                <section>
-                    <h2>Pattern Matching</h2>
-<pre><code>
-sealed trait List[+A]
-case object Nil extends List[Nothing]
-case class Cons[+A](head: A, tail: List[A]) extends List[A]
-
-val list = List(1, 2, 3)
-list match { case _ => 42 } // 42
-list match { case Cons(h, t) => h } // 1
-list match { case Cons(_, t) => t } // List(2, 3)
-Nil match { case Nil => 42 }
-</code></pre>
-                </section>
-
-
-                <section>
-					<h2>Pattern Matching</h2>
-					<pre><code>
-sealed trait List[+A]
-case object Nil extends List[Nothing]
-case class Cons[+A](head: A, tail: List[A]) extends List[A]
-
-def sum(ints: List[Int]): Int = {
-    ints match {
-        case Nil => 0
-        case Cons(x, xs) => x + sum(xs)
-    }
-}
-
-def product(ds: List[Double]): Double = {
-    ds match {
-        case Nil => 1.0
-        case Cons(x, xs) => x * product(xs)
-    }
-}
-					</code></pre>
-				</section>
 
 				<section>
 					<h2>Exercises</h2>
 					<ul>
-						<li>Implement tail</li>
-						<li>Generalise tail to dropWhile</li>
+						<li>Assume tail</li>
+						<li>Generalise tail</li>
 					</ul>
 					<pre><code>
-def tail[A](l: List[A]): List[A]
-def dropWhile[A](l: List[A], f: A => Boolean): List[A]
+						List&lt;A> tail(List&lt;A> list)
+						List&lt;A> drop(List&lt;A> list, int n)
+						List&lt;A> dropWhile(List&lt;A> list, F&lt;A, Boolean> f)
 					</code></pre>
 				</section>
 
-
-				<section>
-					<h2>Recursion over Lists</h2>
-					Look similar?
+                <section>
+					<h2>Naive Implemenation</h2>
 					<pre><code>
-def sum(list: List[Int]): Int = {
-    list match {
-        case Nil => 0
-        case Cons(x, xs) => x + sum(xs)
-    }
+List&lt;Integer> sum(List&lt;Integer> list) {
+  if (list.isEmpty()) {
+    return 0;
+  } else {
+    return list.head() + sum(list.tail());
+  }
 }
-def product(list: List[Double]): Double = {
-    list match {
-        case Nil => 1
-        case Cons(x, xs) => x * product(xs)
-    }
+
+List&lt;Integer> product(List&lt;Integer> list) {
+  if (list.isEmpty()) {
+    return 1;
+  } else {
+    return list.head() * product(list.tail());
+  }
 }
 					</code></pre>
-
 				</section>
 
 				<section>
 					<h2>Fold</h2>
 <pre><code>
-def fold[A,B](list: List[A], acc: B, f: (A, B) => B): B = ???
+&lt;A, B> B fold(List&lt;A> list, B acc, F&lt;B, A, B> f)
 
-def sum2(list: List[Int]) = {
-    fold(list, 0, _ + _)
+List&lt;Integer> sum2(List&lt;Integer> list) = {
+    return fold(list, 0, (acc, i) -> acc + i);
 }
-def product2(list: List[Double]) = {
-    fold(list, 1, _ * _)
+
+List&lt;Integer> product2(List&lt;Integer> list) = {
+    return fold(list, 1, (acc, i) -> acc * i);
 }
 </code></pre>
 				</section>
@@ -277,17 +241,18 @@ def product2(list: List[Double]) = {
                 <section>
                     <h2>Fold Left</h2>
 <pre><code>
-def foldLeft[A,B](list: List[A], acc: B, f: (A, B) => B): B = {
-    list match {
-        case Nil => acc
-        case Cons(x, xs) => foldLeft(xs, f(x, acc), f)
-    }
+&lt;B> B foldLeft(List&lt;A> list, B acc, F&lt;B, A, B> f) {
+  if (list.isEmpty()) {
+    return acc;
+  } else {
+    return foldLeft(list.tail(), f.f(acc, list.head()), f);
+  }
 }
 
-foldLeft(List(1, 4, 9), 0, _ + _)
-foldLeft(List(4, 9), 1 + 0, _ + _)
-foldLeft(List(9), 4 + 1, _ + _)
-foldLeft(Nil, 9 + 5, _ + _)
+foldLeft(list(1, 4, 9), 0, sum)
+foldLeft(list(4, 9), 1 + 0, sum)
+foldLeft(list(9), 4 + 1, sum)
+foldLeft(nil(), 9 + 5, sum)
 14
 </code></pre>
                 </section>
@@ -296,19 +261,19 @@ foldLeft(Nil, 9 + 5, _ + _)
                 <section>
                     <h2>Fold Right</h2>
 <pre><code>
-def foldRight[A,B](list: List[A], acc: B, f: (A, B) => B): B = {
-    list match {
-        case Nil => acc
-        case Cons(x, xs) => f(x, foldRight(xs, acc, f))
-    }
+&lt;B> B foldRight(List&lt;A> list, B acc, F&lt;B, A, B> f) {
+  if (list.isEmpty()) {
+    return acc;
+  } else {
+      return f.f(foldRight(list.tail(), acc, f), list.head());
+  }
 }
 
-foldRight(List(1, 4, 9), 0, _ + _)
-1 + foldRight(List(4, 9), 0, _ + _)
-1 + (4 + foldRight(List(9), 0, _ + _))
-1 + (4 + (9 + foldRight(Nil, 0, _ + _)))
-1 + (4 + (9 + (0)))
-14
+foldRight(list(1, 4, 9), 0, sum)
+foldRight(list(4, 9), 0, sum) + 1
+(foldRight(list(9), 0, sum) + 4) + 1
+((foldRight(nil(), 0, sum) + 9) + 4) + 1
+(((0) + 9) + 4) + 1
 </code></pre>
                 </section>
 
@@ -316,10 +281,10 @@ foldRight(List(1, 4, 9), 0, _ + _)
                 <section>
 					<h2>Exercises</h2>
 <pre><code>
-def reverse[A](l: List[A]): List[A] = ???
-def map[A,B](l: List[A], f: A => B): List[B] = ???
-def flatten[A](l: List[List[A]]): List[A] = ???
-def flatMap[A,B](l: List[A], f: A => List[B]): List[B] = ???
+List&lt;A> reverse(List&lt;A> list)
+List&lt;B> map(List&lt;A> list, F&lt;A, B> f)
+List&lt;A> flatten(List&lt;List&lt;A>> list) // aka join
+List&lt;B> flatMap(List&lt;A> list, F&lt;A, List&lt;B>> f) // aka bind, >>=
 </code></pre>
 				</section>
 
@@ -328,9 +293,9 @@ def flatMap[A,B](l: List[A], f: A => List[B]): List[B] = ???
 					<h2>Trees</h2>
                     <img src="images/tree_before.png"/>
 <pre><code>
-sealed trait Tree[+A]
-case class Leaf extends Tree[Nothing]
-case class Branch[+A](left: Tree[A], node: A, right: Tree[A]) extends Tree[A]
+abstract class Tree&lt;A>
+class Empty&lt;A> extends Tree&lt;A>
+class Node&lt;A> extends Tree&lt;A>
 </code></pre>
 				</section>
 
@@ -338,9 +303,9 @@ case class Branch[+A](left: Tree[A], node: A, right: Tree[A]) extends Tree[A]
                 <section>
                     <h2>Growing Trees</h2>
 <pre><code>
-    val a = Leaf
-    val b = Branch(Leaf, 1, Leaf)
-    val c = Branch(Leaf, 1, Branch(Leaf, 2, Leaf))
+Tree&lt;Integer> t1 = Tree.&lt;Integer>empty();
+Tree&lt;Integer> t2 = Tree.leaf(1);
+Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf());
 </code></pre>
 
                 </section>
@@ -348,19 +313,19 @@ case class Branch[+A](left: Tree[A], node: A, right: Tree[A]) extends Tree[A]
                     <section>
                         <h2>Exercises</h2>
 <pre><code>
-def size[A](tree: Tree[A]): Int = ???
-def depth[A](tree: Tree[A]): Int = ???
-def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = ???
-def foldLeft[A, B](tree: Tree[A], f: (A, B) => B): B = ???
-def traverseLeft[A](tree: Tree[A]): List[A] = ???
+B foldLeft(Tree&lt;A> tree, B acc, F3&lt;B, A, B, B> f)
+int size(Tree&lt;A> tree)
+int depth(Tree&lt;A> tree)
+Tree&lt;B> map(Tree&lt;A> t, F&lt;A, B> f)
+List&lt;A> traverseLeft(Tree&lt;A> t)
 </code></pre>
 				</section>
 
 				<section>
 					<h2>Summary</h2>
 					<ul>
-						<li>Pattern Matching</li>
 						<li>Data Sharing</li>
+						<li>Folds</li>
 						<li>Practiced Pure Functions</li>
 					</ul>
 				</section>
