@@ -96,28 +96,6 @@
                     </ul>
                 </section>
 
-                <section>
-					<h2>Linked List</h2>
-<pre><code>abstract class List&lt;A> {
-	abstract A head();
-	abstract List&lt;A> tail();
-
-	static List&lt;A> nil() {...}
-	static List&lt;A> cons(A h, List&lt;A> t) {...}
-	static List&lt;A> list(A...as) {...}
-}
-
-class Nil&lt;A> extends List&lt;A> {...}
-class Cons&lt;A> extends List&lt;A> {...}
-
-List&ltA> a = nil();
-List&ltA> b = cons(1, nil());
-List&ltA> c = cons(1, cons(2, nil()));
-List&ltA> d = cons(1, cons(2, cons(3, nil())));
-List&ltA> e = list(1, 2, 3);
-</pre></code>
-				</section>
-
 
 				<section>
 					<h2>Immutable Structures</h2>
@@ -148,8 +126,32 @@ List&lt;A> zs = xs.append(ys) // [0, 1, 2, 3, 4, 5]
 
 				</section>
 
+                <section>
+                    <h2>Linked List</h2>
+<pre><code>abstract class List&lt;A> {
+    abstract A head();
+    abstract List&lt;A> tail();
 
-				<section>
+    static List&lt;A> nil() {...}
+    static List&lt;A> cons(A h, List&lt;A> t) {...}
+    static List&lt;A> list(A...as) {...}
+    }
+
+    class Nil&lt;A> extends List&lt;A> {...}
+    class Cons&lt;A> extends List&lt;A> {...}
+
+    List&ltA> a = nil();
+    List&ltA> b = cons(1, nil());
+    List&ltA> c = cons(1, cons(2, nil()));
+    List&ltA> d = cons(1, cons(2, cons(3, nil())));
+    List&ltA> e = list(1, 2, 3);
+</pre></code>
+                </section>
+
+
+
+
+                <section>
 					<h2>Tree Insertion</h2>
 <pre><code>
 Tree&lt;A> xs = ??? // a tree
@@ -305,7 +307,7 @@ class Node&lt;A> extends Tree&lt;A>
 <pre><code>
 Tree&lt;Integer> t1 = Tree.&lt;Integer>empty();
 Tree&lt;Integer> t2 = Tree.leaf(1);
-Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf());
+Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf(7));
 </code></pre>
 
                 </section>
@@ -313,7 +315,7 @@ Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf());
                     <section>
                         <h2>Exercises</h2>
 <pre><code>
-B foldLeft(Tree&lt;A> tree, B acc, F3&lt;B, A, B, B> f)
+B foldLeft(Tree&lt;A> tree, B acc, F2&lt;B, A, B> f)
 int size(Tree&lt;A> tree)
 int depth(Tree&lt;A> tree)
 Tree&lt;B> map(Tree&lt;A> t, F&lt;A, B> f)

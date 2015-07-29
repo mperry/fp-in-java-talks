@@ -60,32 +60,52 @@ public class Solutions {
         return foldLeft(list, List.<A>nil(), (List<A> acc, List<A> l) -> acc.append(l));
     }
 
+    ////////////////////////////
     // trees
+    ////////////////////////////
 
 
-    static <A, B> B foldLeft(Tree<A> tree, B acc, F3<B, A, B, B> f) {
+    static <A, B> B foldLeft(Tree<A> tree, B acc, F2<B, A, B> f) {
         if (tree.isEmpty()) {
             return acc;
         } else {
             B l = foldLeft(tree.left(), acc, f);
-            B r = foldLeft(tree.right(), acc, f);
-            B b = f.f(l, tree.node(), r);
-            return b;
+            B b = f.f(l, tree.node());
+            B r = foldLeft(tree.right(), b, f);
+            return r;
+        }
+    }
+
+    static <A, B> B foldMap(Tree<A> tree, B empty, F3<B, A, B, B> join) {
+        if (tree.isEmpty()) {
+            return empty;
+        } else {
+            B l = foldMap(tree.left(), empty, join);
+            B r = foldMap(tree.right(), empty, join);
+            return join.f(l, tree.node(), r);
+        }
+    }
+
+    static <A, B> B foldMap2(Tree<A> tree, B empty, F<A, B> f, F2<B, B, B> join) {
+        if (tree.isEmpty()) {
+            return empty;
+        } else {
+            B l = foldMap2(tree.left(), empty, f, join);
+            B r = foldMap2(tree.right(), empty, f, join);
+            return join.f(join.f(l, f.f(tree.node())), r);
         }
     }
 
     static <A> int size(Tree<A> tree) {
-        return foldLeft(tree, 0, (l, a, r) -> l + 1 + r);
+        return foldLeft(tree, 0, (acc, a) -> 1 + acc);
     }
 
     static <A> int depth(Tree<A> tree) {
-        // (current, old max)
-        return foldLeft(tree, 0, (l, a, r) -> 1 + Math.max(l, r));
+        return foldMap(tree, 0, (l, a, r) -> 1 + Math.max(l, r));
     }
 
-
     static <A, B> Tree<B> map(Tree<A> t, F<A, B> f) {
-        return foldLeft(t, Tree.<B>empty(), (l, a, r) -> tree(l, f.f(a), r));
+        return foldMap(t, Tree.<B>empty(), (l, a, r) -> tree(l, f.f(a), r));
     }
 
     static <A> boolean eq(Tree<A> t1, Tree<A> t2) {
@@ -107,7 +127,7 @@ public class Solutions {
     }
 
     static <A> List<A> traverseLeft(Tree<A> t) {
-        return foldLeft(t, List.<A>nil(), (l, a, r) -> l.cons(a).reverse().append(r));
+        return foldLeft(t, List.<A>nil(), (acc, a) -> acc.cons(a)).reverse();
     }
 
 
