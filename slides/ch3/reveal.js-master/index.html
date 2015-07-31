@@ -230,11 +230,11 @@ List&lt;Integer> product(List&lt;Integer> list) {
 <pre><code>
 &lt;A, B> B fold(List&lt;A> list, B acc, F2&lt;B, A, B> f)
 
-List&lt;Integer> sum2(List&lt;Integer> list) = {
+List&lt;Integer> sum2(List&lt;Integer> list) {
     return fold(list, 0, (acc, i) -> acc + i);
 }
 
-List&lt;Integer> product2(List&lt;Integer> list) = {
+List&lt;Integer> product2(List&lt;Integer> list) {
     return fold(list, 1, (acc, i) -> acc * i);
 }
 </code></pre>

@@ -16,6 +16,15 @@ import static com.github.mperry.fpinjava.ch3.Tree.tree;
  */
 public class Exercises {
 
+
+    static <A, B> B foldLeft(List<A> list, B acc, F2<B, A, B> f) {
+        if (list.isEmpty()) {
+            return acc;
+        } else {
+            return foldLeft(list.tail(), f.f(acc, list.head()), f);
+        }
+    }
+
     static <A> List<A> drop(List<A> list, int n) {
         //  TODO: implement method using recursion
         return null;
@@ -50,12 +59,6 @@ public class Exercises {
     ////////////////////////////
     // trees
     ////////////////////////////
-
-
-    ////////////////////////////
-    // trees
-    ////////////////////////////
-
 
     static <A, B> B foldLeft(Tree<A> tree, B acc, F2<B, A, B> f) {
         // TODO: implement method
