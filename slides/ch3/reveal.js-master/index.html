@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>Functional Programming In Java - Functional Data Structures</title>
+		<title>Functional Programming In Java - Errors Without Exceptions</title>
 
 		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
 		<meta name="author" content="Mark Perry">
@@ -70,7 +70,7 @@
 					</ul>
 				</section>
 
-                <section>
+                <pre>
                     <h2>Referential Transparency</h2>
 
 <pre><code>
@@ -78,12 +78,12 @@
     List&lt;Integer> list = new LinkedList<>();
     list.add(1);
     List&lt;Integer> list2 = list; // [1]
-</pre></code>
+</code></pre>
 
 <pre><code>
 	new LinkedList<>().add(1);
 	List&lt;Integer> list2 = new LinkedList<>(); // []
-</pre></code>
+</code></pre>
 
                 </section>
 
@@ -115,7 +115,7 @@ List&ltA> b = cons(1, nil());
 List&ltA> c = cons(1, cons(2, nil()));
 List&ltA> d = cons(1, cons(2, cons(3, nil())));
 List&ltA> e = list(1, 2, 3);
-</pre></code>
+</code></pre>
 				</section>
 
 
