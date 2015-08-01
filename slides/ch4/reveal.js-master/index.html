@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Java - Errors Without Exceptions</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h2>Errors Without Exceptions</h2>
+					<h3>Functional Programming in Java</h3>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+
+				<section>
+					<h2>Referential Transparency</h2>
+					<ul>
+						<li>Replace terms with value</li>
+					</ul>
+<pre><code>
+    // append not RT
+    List&lt;Integer> list1 = new LinkedList<>();
+    list1.append(1);
+    List&lt;Integer> list2 = list1; // [1]
+</code></pre>
+
+<pre><code>
+    List&lt;Integer> list1 = new LinkedList<>();
+    list1.append(1);
+    List&lt;Integer> list2 = new LinkedList<>(); // []
+</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Exceptions break RT</h2>
+<pre><code>
+// always throw exception
+int func(int i) {
+    int x = raise();
+    try {
+        return x + 1;
+    } catch (Exception e) {
+        return 0;
+    }
+}
+
+int raise() throws Exception {
+    throw new Exception("fail!");
+}
+</code></pre>
+<pre><code>
+// substitution for x changes meaning
+int func(int i) {
+    try {
+        return raise() + 1;
+    } catch (Exception e) {
+        return 0;
+    }
+}
+</code></pre>
+
+                </section>
+
+				<section>
+					<h2>Exceptions break RT (2)</h2>
+<pre><code>
+int func() {
+    try {
+        g(throw new Exception1(), throw new Exception2())
+    } catch (Exception1 e) {
+        return 1;
+    } catch (Exception2 e) {
+        return 2;
+    }
+}
+</code></pre>
+<pre><code>
+int func() {
+    try {
+        int a = f1(1)
+        int b = a + f2(2)
+        int c = f3(3)
+        f4(a, b, c)
+    } catch (Exception1 e) {
+        return 1;
+    } catch (Exception2 e) {
+        return 2;
+    } (catch Exception3 e)
+        return 3;
+    }
+}
+</code></pre>
+
+                </section>
+
+
+				<section>
+					<h2>Exceptions and RT</h2>
+					<ul>
+						<li>RT breaks when handling exceptions</li>
+                        <li>Worse when combined with:
+                             <ul>
+                                 <li>Long call stack</li>
+                                 <li>Threading, Futures and Promises</li>
+                             </ul>
+                        </li>
+						<li>Uses implicit stack state</li>
+						<li>Modelled using continuations</li>
+					</ul>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Exception Alternatives</h2>
+					<ul>
+						<li>Use a sentinel value</li>
+						<ul>
+							<li>Errors propagate silently</li>
+							<li>No valid sentinel?</li>
+							<li>Callers must know of special values, bad for reuse (HOF)</li>
+						</ul>
+						<li>Force caller to give default value</li>
+						<ul>
+							<li>Immediate callers must have default</li>
+							<li>Need to defer decision</li>
+						</ul>
+					</ul>
+				</section>
+				<section>
+					<h2>Option Data Type</h2>
+					<ul>
+						<li>Need object that sometimes has a value</li>
+						<li>Convert functions from partial to total</li>
+					</ul>
+<pre><code>
+class Option&lt;A>
+class Some&lt;A> extends Option&lt;A>
+class None&lt;A> extends Option&lt;A>
+
+Option&lt;Double> mean(List&lt;Double> list) {
+    return list.isEmpty() ? none() :
+        some(list.fold((acc, d) -> acc + d, 0.0) / list.size());
+}
+</code></pre>
+				</section>
+				<section>
+					<h2>Option Usage Patterns</h2>
+					<ul>
+						<li>Examples: Map lookup, first/last in list</li>
+						<li>Factor out common error handling</li>
+					</ul>
+					<pre><code>
+class Option&lt;A> {
+    A orSome(A a);
+    Option&lt;A> orElse(Option&lt;A> oa);
+    Option&lt;B> map(F&lt;A, B> f);
+    Option&lt;B> bind(F&lt;A, Option&lt;B>> f); // aka flatMap, >>=
+    Option&lt;A> filter(F&lt;A, Boolean> f);
+    Option&lt;C> liftM2(Option&lt;B> o, F2&lt;A, B, C>);
+}
+</code></pre>
+					<ul>
+
+					</ul>
+				</section>
+				<section>
+					<h2>Example</h2>
+					<pre><code>
+case class Employee(name: String, department: String)
+val employeesByName: Map[String, Employee] = ???
+					</code></pre>
+<pre><code>
+val joeDept: String =
+    employeesByName.get("Joe").
+    map(_.dept).
+    filter(_ != "Accounting").
+    getOrElse("Default Dept")
+</code></pre>
+<pre><code>
+public String getJoeDept() {
+    String defaultDept = "Default Dept"
+    String key = "Joe"
+    if (!employeesByName.hasKey(key)) {
+        return defaultDept
+    } else {
+        Department dept = employeesByName.get(key).getDepartment()
+        return dept == "Accounting" ? dept : defaultDept
+    }
+}</code></pre>
+				</section>
+				<section>
+					<h2>Composition and Lifting</h2>
+					<ul>
+						<li>Does Option pollute entire codebase?</li>
+						<li>Map lifts ordinary functions into Option</li>
+						<li>Turns A => B into Option[A] => Option[B]</li>
+					</ul>
+<pre><code>
+def lift[A,B](f: A => B): Option[A] => Option[B] = {
+    o => o.map(f)
+    // _ map f
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Lifting Using Map</h2>
+<pre><code>
+import java.util.regex._
+def pattern(s: String): Option[Pattern] =
+    try {
+        Some(Pattern.compile(s))
+    } catch {
+        case e: PatternSyntaxException => None
+    }
+}
+</code></pre>
+<pre><code>
+def mkMatcher(pat: String): Option[String => Boolean] = {
+    pattern(pat).map(p => (s: String) => p.matcher(s).matches)
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Lifting Using For Comprehension</h2>
+
+<pre><code>
+def doesMatch(pat: String, s: String): Option[Boolean] =
+    // case 1
+    mkMatcher(pat).map(_(s))
+
+    // case 2
+    mkMatcher(pat).map((f: String => Boolean) => f(s))
+
+    // case 3
+    for {
+        f <- mkMatcher(pat)
+    } yield f(s)
+}
+</code></pre>
+
+				</section>
+				<section>
+					<h2>Lifting Two Arguments</h2>
+<pre><code>
+def bothMatch(pat: String, pat2: String, s: String): Option[Boolean] =
+    // case 1
+    mkMatcher(pat).flatMap(f => mkMatcher(pat2).map(g => f(s) && g(s)))
+
+    // case 2
+    for {
+        f <- mkMatcher(pat)
+        g <- mkMatcher(pat2)
+    } yield f(s) && g(s)
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Generalise</h2>
+<pre><code>
+def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
+
+def bothMatch(p1: String, p2: String, s: String): Option[Boolean] =
+    map2(mkMatcher(p1), mkMatcher(p2))((f, g) => f(s) && g(s))
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Exercises</h2>
+<pre><code>
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
+    def sequence[A](a: List[Option[A]]): Option[List[A]]
+    def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
+</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Validation</h2>
+					<ul>
+						<li>Option too simplistic</li>
+						<li>Validation gives a reason for failure</li>
+						<li>Disjoint union of two types</li>
+					</ul>
+<pre><code>
+sealed trait Validation[+E, +A]
+case class Failure[+E](error: E) extends Validation[E, Nothing]
+case class Success[+A](value: A) extends Validation[Nothing, A]
+</code></pre>
+
+				</section>
+				<section>
+					<h2>Creating Validation</h2>
+<pre><code>
+def safeDiv(x: Double, y: Double): Validation[Exception, Double] =
+    try {
+        Success(x / y)
+    } catch {
+        case e: Exception => Failure(e)
+    }
+</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Validation Functions</h2>
+<pre><code>
+trait Validation[+E, +A] {
+    def map[B](f: A => B): Validation[E, B]
+    def flatMap[B](f: A => Validation[E, B]): Validation[E, B]
+    def orElse[A](b: => Validation[E, A]): Validation[E, A]
+    def map2[B, C](b: Validation[E, B])(f: (A, B) => C): Validation[E, C]
+}
+</code></pre>
+
+<pre><code>
+for {
+    age <- Success(42)
+    name <- Failure("invalid name")
+    salary <- Success(3.4)
+} yield employee(name, age, salary)
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Validation Example</h2>
+<pre><code>
+case class Person(name: Name, age: Age)
+case class Name(value: String)
+case class Age(value: Int)
+
+object Person {
+    def mkName(name: String): Validation[String, Name] =
+        if (name == "" || name == null) Faliure("Name is empty.")
+        else Success(new Name(name))
+
+    def mkAge(age: Int): Validation[String, Age] =
+        if (age < 0) Faliure("Age is out of range.")
+        else Success(new Age(age))
+
+    def mkPerson(name: String, age: Int): Validation[String, Person] =
+        mkName(name).map2(mkAge(age))((n, a) => Person(n, a))
+}
+</code></pre>
+				</section>
+
+                <section>
+                    <h2>Exercises</h2>
+<pre><code>
+def map[B](f: A => B): Validation[E, B]
+def flatMap[E2 >: E, B](f: A => Validation[E2, B]): Validation[E2, B]
+def orElse[E2 >: E, B >: A](v: => Validation[E2, B]): Validation[E2, B]
+def map2[E2 >: E, B, C](v: Validation[E2, B])(f: (A, B) => C): Validation[E2, C]
+
+def traverse[E,A,B](as: List[A])(f: A => Validation[E, B]): Validation[E, List[B]]
+def sequence[E,A](vs: List[Validation[E,A]]): Validation[E,List[A]] =
+</code></pre>
+
+                </section>
+
+                <section>
+					<h2>Conclusion</h2>
+					<ul>
+						<li>Option and Validation are:
+							<ul>
+								<li>modular</li>
+								<li>compositional</li>
+								<li>simple to reason about</li>
+							</ul>
+						<li>Reuse functions that manipulate errors</li>
+					</ul>
+				</section>
+
+
+				<section>
+					<h2>Afterword</h2>
+					<ul>
+						<li>Functional Programming in Scala, Chiusano and Bjarnason</li>
+						<li>Chapter 4, Handling Errors Without Exceptions</li>
+					</ul>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
