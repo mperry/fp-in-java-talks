@@ -5,11 +5,25 @@ import fj.F2;
 
 import fj.F3;
 import fj.data.List;
+import org.junit.Assert;
+import org.junit.Test;
+
+import static com.github.mperry.fpinjava.ch3.Tree.leaf;
+import static com.github.mperry.fpinjava.ch3.Tree.tree;
 
 /**
  * Created by MarkPerry on 13/07/2015.
  */
 public class Exercises {
+
+
+    static <A, B> B foldLeft(List<A> list, B acc, F2<B, A, B> f) {
+        if (list.isEmpty()) {
+            return acc;
+        } else {
+            return foldLeft(list.tail(), f.f(acc, list.head()), f);
+        }
+    }
 
     static <A> List<A> drop(List<A> list, int n) {
         //  TODO: implement method using recursion
@@ -42,18 +56,32 @@ public class Exercises {
         return null;
     }
 
-    static <A, B> B foldLeft(Tree<A> tree, B acc, F3<B, A, B, B> f) {
-        //  TODO: implement method
+    ////////////////////////////
+    // trees
+    ////////////////////////////
+
+    static <A, B> B foldLeft(Tree<A> tree, B acc, F2<B, A, B> f) {
+        // TODO: implement method
+        return null;
+    }
+
+    static <A, B> B foldMap(Tree<A> tree, B empty, F3<B, A, B, B> join) {
+        // TODO: implement method
+        return null;
+    }
+
+    static <A, B> B foldMap2(Tree<A> tree, B empty, F<A, B> f, F2<B, B, B> join) {
+        // TODO: implement method
         return null;
     }
 
     static <A> int size(Tree<A> tree) {
-        //  TODO: implement method
+        // TODO: implement method
         return 0;
     }
 
     static <A> int depth(Tree<A> tree) {
-        //  TODO: implement method
+        // TODO: implement method
         return 0;
     }
 

@@ -70,7 +70,7 @@
 					</ul>
 				</section>
 
-                <pre>
+				<section>
                     <h2>Referential Transparency</h2>
 
 <pre><code>
@@ -81,8 +81,8 @@
 </code></pre>
 
 <pre><code>
-	new LinkedList<>().add(1);
-	List&lt;Integer> list2 = new LinkedList<>(); // []
+    new LinkedList&lt;Integer>().add(1);
+    List&lt;Integer> list2 = new LinkedList&lt;>(); // []
 </code></pre>
 
                 </section>
@@ -95,29 +95,6 @@
                         <li>Data copying issue?</li>
                     </ul>
                 </section>
-
-                <section>
-					<h2>Linked List</h2>
-<pre><code>abstract class List&lt;A> {
-	abstract A head();
-	abstract List&lt;A> tail();
-
-	static List&lt;A> nil() {...}
-	static List&lt;A> cons(A h, List&lt;A> t) {...}
-	static List&lt;A> list(A...as) {...}
-}
-
-class Nil&lt;A> extends List&lt;A> {...}
-class Cons&lt;A> extends List&lt;A> {...}
-
-List&ltA> a = nil();
-List&ltA> b = cons(1, nil());
-List&ltA> c = cons(1, cons(2, nil()));
-List&ltA> d = cons(1, cons(2, cons(3, nil())));
-List&ltA> e = list(1, 2, 3);
-</code></pre>
-				</section>
-
 
 				<section>
 					<h2>Immutable Structures</h2>
@@ -148,8 +125,32 @@ List&lt;A> zs = xs.append(ys) // [0, 1, 2, 3, 4, 5]
 
 				</section>
 
+                <section>
+                    <h2>Linked List</h2>
+<pre><code>abstract class List&lt;A> {
+    abstract A head();
+    abstract List&lt;A> tail();
 
-				<section>
+    static List&lt;A> nil() {...}
+    static List&lt;A> cons(A h, List&lt;A> t) {...}
+    static List&lt;A> list(A...as) {...}
+    }
+
+    class Nil&lt;A> extends List&lt;A> {...}
+    class Cons&lt;A> extends List&lt;A> {...}
+
+    List&ltA> a = nil();
+    List&ltA> b = cons(1, nil());
+    List&ltA> c = cons(1, cons(2, nil()));
+    List&ltA> d = cons(1, cons(2, cons(3, nil())));
+    List&ltA> e = list(1, 2, 3);
+</pre></code>
+                </section>
+
+
+
+
+                <section>
 					<h2>Tree Insertion</h2>
 <pre><code>
 Tree&lt;A> xs = ??? // a tree
@@ -203,7 +204,7 @@ Tree&lt;A> ys = xs.insert("e")
 				</section>
 
                 <section>
-					<h2>Naive Implemenation</h2>
+					<h2>Naive Implementation</h2>
 					<pre><code>
 List&lt;Integer> sum(List&lt;Integer> list) {
   if (list.isEmpty()) {
@@ -226,13 +227,13 @@ List&lt;Integer> product(List&lt;Integer> list) {
 				<section>
 					<h2>Fold</h2>
 <pre><code>
-&lt;A, B> B fold(List&lt;A> list, B acc, F&lt;B, A, B> f)
+&lt;A, B> B fold(List&lt;A> list, B acc, F2&lt;B, A, B> f)
 
-List&lt;Integer> sum2(List&lt;Integer> list) = {
+List&lt;Integer> sum2(List&lt;Integer> list) {
     return fold(list, 0, (acc, i) -> acc + i);
 }
 
-List&lt;Integer> product2(List&lt;Integer> list) = {
+List&lt;Integer> product2(List&lt;Integer> list) {
     return fold(list, 1, (acc, i) -> acc * i);
 }
 </code></pre>
@@ -241,7 +242,7 @@ List&lt;Integer> product2(List&lt;Integer> list) = {
                 <section>
                     <h2>Fold Left</h2>
 <pre><code>
-&lt;B> B foldLeft(List&lt;A> list, B acc, F&lt;B, A, B> f) {
+&lt;B> B foldLeft(List&lt;A> list, B acc, F2&lt;B, A, B> f) {
   if (list.isEmpty()) {
     return acc;
   } else {
@@ -261,7 +262,7 @@ foldLeft(nil(), 9 + 5, sum)
                 <section>
                     <h2>Fold Right</h2>
 <pre><code>
-&lt;B> B foldRight(List&lt;A> list, B acc, F&lt;B, A, B> f) {
+&lt;B> B foldRight(List&lt;A> list, B acc, F2&lt;B, A, B> f) {
   if (list.isEmpty()) {
     return acc;
   } else {
@@ -305,7 +306,7 @@ class Node&lt;A> extends Tree&lt;A>
 <pre><code>
 Tree&lt;Integer> t1 = Tree.&lt;Integer>empty();
 Tree&lt;Integer> t2 = Tree.leaf(1);
-Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf());
+Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf(7));
 </code></pre>
 
                 </section>
@@ -313,7 +314,7 @@ Tree&lt;Integer> t3 = Tree.tree(leaf(3), 5, leaf());
                     <section>
                         <h2>Exercises</h2>
 <pre><code>
-B foldLeft(Tree&lt;A> tree, B acc, F3&lt;B, A, B, B> f)
+B foldLeft(Tree&lt;A> tree, B acc, F2&lt;B, A, B> f)
 int size(Tree&lt;A> tree)
 int depth(Tree&lt;A> tree)
 Tree&lt;B> map(Tree&lt;A> t, F&lt;A, B> f)
