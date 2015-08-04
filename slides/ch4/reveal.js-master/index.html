@@ -118,7 +118,7 @@ int func(int i) {
 <pre><code>
 int func() {
     try {
-        g(throw new Exception1(), throw new Exception2())
+        return g(throw new Exception1(), throw new Exception2());
     } catch (Exception1 e) {
         return 1;
     } catch (Exception2 e) {
@@ -129,10 +129,10 @@ int func() {
 <pre><code>
 int func() {
     try {
-        int a = f1(1)
-        int b = a + f2(2)
-        int c = f3(3)
-        f4(a, b, c)
+        int a = f1(1);
+        int b = f2(2);
+        int c = a + f3(3);
+        return f4(a, b, c);
     } catch (Exception1 e) {
         return 1;
     } catch (Exception2 e) {
@@ -152,7 +152,8 @@ int func() {
 						<li>RT breaks when handling exceptions</li>
                         <li>Worse when combined with:
                              <ul>
-                                 <li>Long call stack</li>
+                                 <li>Large call stack</li>
+                                 <li>Mutable Global State</li>
                                  <li>Threading, Futures and Promises</li>
                              </ul>
                         </li>
@@ -196,7 +197,7 @@ Option&lt;Double> mean(List&lt;Double> list) {
 </code></pre>
 				</section>
 				<section>
-					<h2>Option Usage Patterns</h2>
+					<h2>Optional Functions</h2>
 					<ul>
 						<li>Examples: Map lookup, first/last in list</li>
 						<li>Factor out common error handling</li>
@@ -208,7 +209,7 @@ class Option&lt;A> {
     Option&lt;B> map(F&lt;A, B> f);
     Option&lt;B> bind(F&lt;A, Option&lt;B>> f); // aka flatMap, >>=
     Option&lt;A> filter(F&lt;A, Boolean> f);
-    Option&lt;C> liftM2(Option&lt;B> o, F2&lt;A, B, C>);
+    Option&lt;C> liftM2(Option&lt;B> o, F2&lt;A, B, C>); // personal favourite
 }
 </code></pre>
 					<ul>
@@ -218,25 +219,28 @@ class Option&lt;A> {
 				<section>
 					<h2>Example</h2>
 					<pre><code>
-case class Employee(name: String, department: String)
-val employeesByName: Map[String, Employee] = ???
-					</code></pre>
+@Value.Immutable
+interface Employee {
+    String name();
+    String department();
+}
+Map&lt;String, Employee> employeesByName = createMap();
+</code></pre>
 <pre><code>
-val joeDept: String =
-    employeesByName.get("Joe").
-    map(_.dept).
-    filter(_ != "Accounting").
-    getOrElse("Default Dept")
+String joeDept = employeesByName.get("Joe")
+    .map(e -> e.department())
+    .filter(d -> d.equals("Accounting"))
+    .orSome("Default Dept");
 </code></pre>
 <pre><code>
 public String getJoeDept() {
-    String defaultDept = "Default Dept"
-    String key = "Joe"
+    String defaultDept = "Default Dept";
+    String key = "Joe";
     if (!employeesByName.hasKey(key)) {
-        return defaultDept
+        return defaultDept;
     } else {
-        Department dept = employeesByName.get(key).getDepartment()
-        return dept == "Accounting" ? dept : defaultDept
+        Department dept = employeesByName.get(key).getDepartment();
+        return dept.equals("Accounting") ? dept : defaultDept;
     }
 }</code></pre>
 				</section>
@@ -245,12 +249,11 @@ public String getJoeDept() {
 					<ul>
 						<li>Does Option pollute entire codebase?</li>
 						<li>Map lifts ordinary functions into Option</li>
-						<li>Turns A => B into Option[A] => Option[B]</li>
+						<li>Turns A -> B into Option&lt;A> -> Option&lt;B></li>
 					</ul>
 <pre><code>
-def lift[A,B](f: A => B): Option[A] => Option[B] = {
-    o => o.map(f)
-    // _ map f
+F&lt;Option&lt;A>, Option&lt;B>> lift(F&lt;A, B> f) {
+    return oa -> oa.map(f);
 }
 </code></pre>
 				</section>
@@ -258,72 +261,55 @@ def lift[A,B](f: A => B): Option[A] => Option[B] = {
 				<section>
 					<h2>Lifting Using Map</h2>
 <pre><code>
-import java.util.regex._
-def pattern(s: String): Option[Pattern] =
+import java.util.regex.*;
+Option&lt;Pattern> pattern(String s) {
     try {
-        Some(Pattern.compile(s))
-    } catch {
-        case e: PatternSyntaxException => None
+        return Option.some(Pattern.compile(s));
+    } catch (PatternSyntaxException e) {
+        return Option.none();
     }
 }
 </code></pre>
 <pre><code>
-def mkMatcher(pat: String): Option[String => Boolean] = {
-    pattern(pat).map(p => (s: String) => p.matcher(s).matches)
+Option&lt;Boolean> doesMatch(String pattern, String s) {
+    return pattern(pattern).map(p -> p.matcher(s));
 }
+
+Option&lt;F&lt;String, Boolean>> mkMatcher(String pat) {
+    return pattern(pat).map(p -> (s -> p.matcher(s).matches()));
+}
+
 </code></pre>
 				</section>
 
-				<section>
-					<h2>Lifting Using For Comprehension</h2>
-
-<pre><code>
-def doesMatch(pat: String, s: String): Option[Boolean] =
-    // case 1
-    mkMatcher(pat).map(_(s))
-
-    // case 2
-    mkMatcher(pat).map((f: String => Boolean) => f(s))
-
-    // case 3
-    for {
-        f <- mkMatcher(pat)
-    } yield f(s)
-}
-</code></pre>
-
-				</section>
 				<section>
 					<h2>Lifting Two Arguments</h2>
 <pre><code>
-def bothMatch(pat: String, pat2: String, s: String): Option[Boolean] =
-    // case 1
-    mkMatcher(pat).flatMap(f => mkMatcher(pat2).map(g => f(s) && g(s)))
-
-    // case 2
-    for {
-        f <- mkMatcher(pat)
-        g <- mkMatcher(pat2)
-    } yield f(s) && g(s)
+Option&lt;Boolean> bothMatch(String pat1, String pat2, String s) {
+    return doesMatch(pat1, s).bind(b1 -> doesMatch(pat2, s).map(b2 -> b1 && b2));
+}
 </code></pre>
 				</section>
 
 				<section>
 					<h2>Generalise</h2>
 <pre><code>
-def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
+Option&lt;C> liftM2(Option&lt;A> oa, Option&lt;B> ob, F2&lt;A, B, C> f)
 
-def bothMatch(p1: String, p2: String, s: String): Option[Boolean] =
-    map2(mkMatcher(p1), mkMatcher(p2))((f, g) => f(s) && g(s))
+Boolean bothMatch(String p1, String p2, String s) {
+    return liftM2(doesMatch(p1, s), doesMatch(p2, s),
+        (b1, b2) -> b1 && b2)
+    ).orSome(false);
+}
 </code></pre>
 				</section>
 
 				<section>
 					<h2>Exercises</h2>
 <pre><code>
-    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
-    def sequence[A](a: List[Option[A]]): Option[List[A]]
-    def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
+    static &lt;A, B, C> Option&lt;C> liftM2(Option&lt;A> oa, Option&lt;B> ob, F2&lt;A, B, C> f)
+    static &lt;A> Option&lt;List&lt;A>> sequence(List&lt;Option&lt;A>> list)
+    static &lt;A, B> Option&lt;List&lt;B>> traverse(List&lt;A> list, F&lt;A, Option&lt;B>> f)
 </code></pre>
 
 				</section>
