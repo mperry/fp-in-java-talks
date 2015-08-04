@@ -204,6 +204,12 @@ Option&lt;Double> mean(List&lt;Double> list) {
 					</ul>
 					<pre><code>
 class Option&lt;A> {
+    static &lt;A> Option&lt;A> none();
+    static &lt;A> Option&lt;A> some(A a);
+
+    boolean isNone();
+    boolean isSome();
+
     A orSome(A a);
     Option&lt;A> orElse(Option&lt;A> oa);
     Option&lt;B> map(F&lt;A, B> f);
