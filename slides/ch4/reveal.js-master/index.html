@@ -307,6 +307,9 @@ Boolean bothMatch(String p1, String p2, String s) {
 				<section>
 					<h2>Exercises</h2>
 <pre><code>
+    static &lt;A, B> Option&lt;B> map(Option&lt;A> oa, F&lt;A, B> f)
+    static &lt;A> Option&lt;A> filter(Option&lt;A> oa, F&lt;A, Boolean> f)
+    static &lt;A, B> Option&lt;B> bind(Option&lt;A> oa, F&lt;A, Option&lt;B>> f)
     static &lt;A, B, C> Option&lt;C> liftM2(Option&lt;A> oa, Option&lt;B> ob, F2&lt;A, B, C> f)
     static &lt;A> Option&lt;List&lt;A>> sequence(List&lt;Option&lt;A>> list)
     static &lt;A, B> Option&lt;List&lt;B>> traverse(List&lt;A> list, F&lt;A, Option&lt;B>> f)
@@ -322,21 +325,25 @@ Boolean bothMatch(String p1, String p2, String s) {
 						<li>Disjoint union of two types</li>
 					</ul>
 <pre><code>
-sealed trait Validation[+E, +A]
-case class Failure[+E](error: E) extends Validation[E, Nothing]
-case class Success[+A](value: A) extends Validation[Nothing, A]
+abstract class Validation&lt;E, A> {
+    static &lt;E, A> Validation&lt;E, A> fail(E e);
+    static &lt;E, A> Validation&lt;E, A> success(A a);
+}
+class Failure&lt;E, A> extends Validation&lt;E, A>;
+class Success&lt;E, A> extends Validation&lt;E, A>;
 </code></pre>
 
 				</section>
 				<section>
 					<h2>Creating Validation</h2>
 <pre><code>
-def safeDiv(x: Double, y: Double): Validation[Exception, Double] =
+Validation&lt;Exception, Double> safeDiv(Double num, Double denom) {
     try {
-        Success(x / y)
-    } catch {
-        case e: Exception => Failure(e)
+        return Validation.success(x / y);
+    } catch (Exception e) {
+        return Validation.failure(e);
     }
+}
 </code></pre>
 
 				</section>
@@ -344,41 +351,40 @@ def safeDiv(x: Double, y: Double): Validation[Exception, Double] =
 				<section>
 					<h2>Validation Functions</h2>
 <pre><code>
-trait Validation[+E, +A] {
-    def map[B](f: A => B): Validation[E, B]
-    def flatMap[B](f: A => Validation[E, B]): Validation[E, B]
-    def orElse[A](b: => Validation[E, A]): Validation[E, A]
-    def map2[B, C](b: Validation[E, B])(f: (A, B) => C): Validation[E, C]
+    &lt;B> Validation&lt;E, B> map(F&lt;A, B> f);
+    &lt;B> Validation&lt;E, B> bind(F&lt;A, Validation&lt;E, B>> f);
+    Validation&lt;E, A> orElse(Validation&lt;E, A> v);
+    A orSuccess(A a);
+    &lt;B, C> Validation&lt;E, C> liftM2(Validation&lt;E, B> v, F2&lt;A, B, C> f);
 }
-</code></pre>
-
-<pre><code>
-for {
-    age <- Success(42)
-    name <- Failure("invalid name")
-    salary <- Success(3.4)
-} yield employee(name, age, salary)
 </code></pre>
 				</section>
 
 				<section>
 					<h2>Validation Example</h2>
 <pre><code>
-case class Person(name: Name, age: Age)
-case class Name(value: String)
-case class Age(value: Int)
+interface Person {
+    Name name();
+    Age age();
+}
+interface Name {
+    String value();
+}
+interface Age {
+    int value();
+}
 
-object Person {
-    def mkName(name: String): Validation[String, Name] =
-        if (name == "" || name == null) Faliure("Name is empty.")
-        else Success(new Name(name))
+class PersonBuilder {
+    Validation&lt;String, Name> createName(name: String) {
+        return isNullOrEmpty(name) ? Validation.fail("Name is empty.") :
+            Validation.success(new Name(name));
+    }
+    Validation&lt;String, Age> createAge(int age) {
+        return age < 0 ? fail("Age is out of range.") : success(new Age(age));
 
-    def mkAge(age: Int): Validation[String, Age] =
-        if (age < 0) Faliure("Age is out of range.")
-        else Success(new Age(age))
-
-    def mkPerson(name: String, age: Int): Validation[String, Person] =
-        mkName(name).map2(mkAge(age))((n, a) => Person(n, a))
+    Validation&lt;String, Person> createPerson(String name, int age) {
+        return createName(name).liftM2(createAge(age), (n, a) -> new Person(n, a));
+    }
 }
 </code></pre>
 				</section>
@@ -386,13 +392,15 @@ object Person {
                 <section>
                     <h2>Exercises</h2>
 <pre><code>
-def map[B](f: A => B): Validation[E, B]
-def flatMap[E2 >: E, B](f: A => Validation[E2, B]): Validation[E2, B]
-def orElse[E2 >: E, B >: A](v: => Validation[E2, B]): Validation[E2, B]
-def map2[E2 >: E, B, C](v: Validation[E2, B])(f: (A, B) => C): Validation[E2, C]
 
-def traverse[E,A,B](as: List[A])(f: A => Validation[E, B]): Validation[E, List[B]]
-def sequence[E,A](vs: List[Validation[E,A]]): Validation[E,List[A]] =
+&lt;B> Validation&lt;E, B> map(F&lt;A, B> f);
+&lt;B> Validation&lt;E, B> bind(F&lt;A, Validation&lt;E, B>> f);
+Validation&lt;E, A> orElse(Validation&lt;E, A> v);
+A orSuccess(A a);
+&lt;B, C> Validation&lt;E, C> liftM2(Validation&lt;E, B> v, F2&lt;A, B, C> f);
+
+static &lt;E, A> Validation&lt;E, List&lt;A>> sequence(List&lt;Validation&lt;E, A>>)
+static &lt;E, A, B> Validation&lt;E, List&lt;B>> traverse(List&lt;A> list, F&lt;A, Validation&lt;E, B>> f)
 </code></pre>
 
                 </section>
