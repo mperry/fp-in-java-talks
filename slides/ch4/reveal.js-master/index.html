@@ -387,7 +387,7 @@ class PersonBuilder {
     }
     Validation&lt;String, Age> createAge(int age) {
         return age < 0 ? fail("Age is out of range.") : success(new Age(age));
-
+    }
     Validation&lt;String, Person> createPerson(String name, int age) {
         return createName(name).liftM2(createAge(age), (n, a) -> new Person(n, a));
     }
