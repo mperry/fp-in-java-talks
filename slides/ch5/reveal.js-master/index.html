@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Java - Strictness and Laziness</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h2>Strictness and Laziness</h2>
+					<h3>Functional Programming in Java</h3>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+
+				<section>
+					<h2>Motivation</h2>
+					<ul>
+						<li>Previously used map, fold, filter over Lists</li>
+						<li>Composition over lists inefficient</li>
+
+						<pre><code>
+List.list(1, 2, 3, 4)
+    .map(i -> i + 10)
+    .filter(i -> i % 2 == 0)
+    .map(i -> i  * 3);
+// List.list(36,42)
+						</code></pre>
+                        <li>Inefficient memory usage - intermediate states</li>
+						<li>Build better List</li>
+						<li>Laziness improves modularity</li>
+					</ul>
+
+				</section>
+
+				<section>
+					<h2>Lazy Values</h2>
+<pre><code>interface F0&lt;A> {
+    A f();
+}
+abstract class P1&lt;A> implements F0&lt;A> {
+    abstract A _1();
+    A f() {...}
+    P1&lt;B> map(F&lt;A, B> f) {...}
+    P1&lt;B> bind(F&lt;A, P1&lt;B>> f) {...}
+    P1&lt;A> join(P1&lt;P1&lt;A>> p) {...}
+    P1&lt;C> liftM2(P1&lt;B> p, F&lt;A, B, C> f) {...}
+}
+abstract class P2&lt;A, B> {
+    abstract A _1();
+    abstract B _2();
+    // other methods
+}</code></pre>
+                    </section>
+                <section>
+                    <h2>Creating Values</h2>
+                    <pre><code>
+public static P1&lt;A> p(A a) {
+    return new P1&lt;A>() {
+        A _1() {
+            return a;
+        }
+    };
+}
+P1&lt;Integer> p1 = P.p(1);
+P1&lt;Integer> p2 = P.lazy(() -> 1);
+P1&lt;Integer> p3 = P.&lt;Integer>lazy(() -> {
+    throw new Error();
+});
+P1&lt;Integer> p4 = Bottom.error_("fail");
+</code></pre>
+</ul>
+                    </section>
+                <section>
+                    <h2>Lazy Boolean Operations</h2>
+                    <ul>
+						<li>Familiar: and, or</li>
+                    </ul>
+					<pre><code>
+static boolean or(boolean b1, F0&lt;Boolean> f) {
+    return b1 ? true : f.f();
+}
+or(true, () -> false);
+or(true, () -> expensiveMethod());
+
+static boolean and(boolean b1, F0&lt;Boolean> f) {
+    return b1 ? f.f() : false;
+}
+and(false, () -> expensiveMethod());
+
+					</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Lazy If</h2>
+					<pre><code>
+static A if2(boolean b, F0&lt;A> onTrue, F0&lt;A> onFalse) {
+    return b ? onTrue.f() : onFalse.f();
+}
+
+if2(false, () -> Bottom.error_("fail"), () -> 3)
+					</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Lazy Values</h2>
+					<ul>
+						<li>Can cache result</li>
+						<li>Delay evaluation until used</li>
+						<li>Use keyword lazy</li>
+					</ul>
+					<pre><code>
+def maybeTwice2(b: Boolean, i: => Int) = {
+	lazy val j = i
+	if (b) j+j else 0
+}
+
+val x = maybeTwice2(true, { println("hi"); 1+41 })
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Streams</h2>
+					<ul>
+						<li>Composed functions on streams use single pass</li>
+					</ul>
+					<pre><code>
+sealed abstract class Stream[+A] {
+	def uncons: Option[Cons[A]]
+	def isEmpty: Boolean = uncons.isEmpty
+}
+object Empty extends Stream[Nothing] {
+	val uncons = None
+}
+sealed abstract class Cons[+A] extends Stream[A] {
+	def head: A
+	def tail: Stream[A]
+	val uncons = Some(this)
+}
+
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Stream Companion</h2>
+					<pre><code>
+object Stream {
+	def empty[A]: Stream[A] = Empty
+	def cons[A](h: => A, t: => Stream[A]): Stream[A] = {
+		new Cons[A] {
+			lazy val head = h
+			lazy val tail = t
+		}
+	}
+	def apply[A](as: A*): Stream[A] =
+		if (as.isEmpty)
+			Empty
+		else
+			cons(as.head, apply(as.tail: _*))
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Exercises</h2>
+					<pre><code>
+def toList: List[A]
+def take(n: Int): Stream[A]
+def takeWhile(p: A => Boolean): Stream[A]
+					</code></pre>
+				</section>
+
+				<section>
+
+					<h2>Separation of Concerns</h2>
+					<ul>
+						<li>Computation descriptions vs evaluation</li>
+						<li>Functions describe, evaluation with arguments</li>
+						<li>Option captured error, pattern match for decision</li>
+						<li>Laziness separates description from evaluation</li>
+						<li>Describe large expression, evaluate part of expression</li>
+					</ul>
+
+				</section>
+
+				<section>
+					<h2>Example</h2>
+					<pre><code>
+def exists(p: A => Boolean): Boolean =
+	uncons match {
+		case Some(c) => p(c.head) || c.tail.exists(p)
+		case None => false
+}
+					</code></pre>
+					<ul>
+						<li>Or is non-strict</li>
+						<li>Traversal terminates early</li>
+						<li>Tail may never be evaluated</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Lazy Fold</h2>
+					<pre><code>
+def exists(p: A => Boolean): Boolean =
+	foldRight(false)((a, b) => p(a) || b)
+
+def foldRight[B](acc: => B)(f: (A, => B) => B): B =
+	uncons match {
+		case Some(c) => f(c.head, c.tail.foldRight(acc)(f))
+		case None => acc
+}
+					</code></pre>
+					<ul>
+						<li>Function f is lazy in 2nd argument</li>
+						<li>Can reuse foldRight due to laziness</li>
+						<li>Strict foldRight requires function to terminate early</li>
+						<li>Laziness allowed  more reuse!</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Exercise</h2>
+
+						<ul>
+							<li>Use foldRight to implement takeWhile</li>
+							<li>Implement map, filter, append and flatMap using foldRight</li>
+						</ul>
+
+				</section>
+
+				<section>
+					<h2>Example</h2>
+					<pre><code>
+Stream(1,2,3,4).map(_ + 6).filter(_ % 2 == 0).toList
+
+cons(1, Stream(2,3,4).map(_ + 4)).filter(_ % 2 == 0).toList
+Stream(2,3,4).map(_ + 4).filter(_ % 2 == 0).toList
+cons(6, Stream(3,4).map(_ + 4)).filter(_ % 2 == 0).toList
+6 :: Stream(3,4).map(_ + 4).filter(_ % 2 == 0).toList
+6 :: cons(cons(7, Stream(4)).map(_ + 4)).filter(_ % 2 == 0).toList
+6 :: Stream(4).map(_ + 4).filter(_ % 2 == 0).toList
+6 :: cons(8, Stream().map(_ + 4)).filter(_ % 2 == 0).toList
+6 :: 8 :: Stream().map(_ + 4).filter(_ % 2 == 0).toList
+6 :: 8 :: List()
+					</code></pre>
+					<ul>
+						<li>Process element at a time</li>
+						<li>Filter and map interleaved</li>
+						<li>No intermediate answers</li>
+						<li>Streams as first-class loops</li>
+						<li>Memory efficient</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Infinite Streams</h2>
+					<pre><code>
+val ones: Stream[Int] = cons(1, ones)
+ones.take(5).toList
+>>> res0: List[Int] = List(1, 1, 1, 1, 1)
+ones.forAll(x => x == 1)
+					</code></pre>
+					Write
+					<pre><code>
+def constant[A](a: A): Stream[A]
+def from(n: Int): Stream[Int]
+def fibonacci(a: Int, b: Int): Stream[Int]
+def unfold[A, S](s: S)(f: S => Option[(A, S)]): Stream[A]
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Unfold</h2>
+					<ul>
+						<li>Unfold is co-recursive</li>
+						<li>Recursion consumes data and terminates</li>
+						<li>Co-recursion produces co-data and co-terminates</li>
+						<li>Can always evaluate more in finite time</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>Laziness is efficient and modular</li>
+						<li>Separates description of expression and evaluation</li>
+						<li>Reuse description in different contexts</li>
+						<li>Functions can evaluate different portions</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Afterword</h2>
+					<ul>
+						<li>Functional Programming in Scala, Chiusano and Bjarnason</li>
+						<li>Chapter 5, Strictness and Laziness</li>
+					</ul>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
