@@ -1,10 +1,8 @@
 package com.github.mperry.fpinjava.ch5;
 
-import fj.F;
-import fj.F0;
-import fj.F2;
-import fj.P;
+import fj.*;
 import fj.data.List;
+import fj.data.Option;
 import fj.data.Stream;
 
 /**
@@ -73,6 +71,29 @@ public class Solutions {
 
 	// infinite streams
 
+	static <A> Stream<A> cons(A a, F0<Stream<A>> f) {
+		return Stream.cons(a, P.lazy(f));
+	}
 
+	static <A> Stream<A> repeat(A a) {
+		return cons(a, () -> repeat(a));
+	}
+
+	static Stream<Integer> from(int i) {
+		return cons(i, () -> from(i + 1));
+	}
+
+	static Stream<Integer> range(int low, int high) {
+		return low >= high ? Stream.nil() : cons(low, () -> range(low + 1, high));
+	}
+
+	static Stream<Integer> fibonacci(int a, int b) {
+		return cons(a + b, () -> fibonacci(b, a + b));
+	}
+
+	static <A, S> Stream<A> unfold(S s, F<S, Option<P2<A, S>>> f) {
+		Option<Stream<A>> os  = f.f(s).map(p2 -> cons(p2._1(), () -> unfold(p2._2(), f)));
+		return os.orSome(Stream.nil());
+	}
 
 }

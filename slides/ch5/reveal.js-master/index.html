@@ -149,7 +149,7 @@ static A if2(boolean b, F0&lt;A> onTrue, F0&lt;A> onFalse) {
     return b ? onTrue.f() : onFalse.f();
 }
 
-if2(false, () -> Bottom.error_("fail"), () -> 3);
+if2(false, Bottom.error_("fail"), () -> 3);
 					</code></pre>
 
 				</section>
@@ -300,6 +300,7 @@ static &lt;A> Stream&lt;A> cons(A head, F0&lt;Stream&lt;A>> tail);
 
 static &lt;A> Stream&lt;A> repeat(A a);
 static Stream&lt;Integer> from(int i);
+static Stream&lt;Integer> range(int low, int high); // [low, high)
 static Stream&lt;Integer> fibonacci(int a, int b);
 static Stream&lt;A> unfold(S s, F&lt;S, Option&lt;P2&lt;A, S>>> f);
 
@@ -309,9 +310,9 @@ static Stream&lt;A> unfold(S s, F&lt;S, Option&lt;P2&lt;A, S>>> f);
 				<section>
 					<h2>Unfold</h2>
 					<ul>
-						<li>Unfold is co-recursive</li>
+						<li>Unfold is co-recursive - what?</li>
 						<li>Recursion consumes data and terminates</li>
-						<li>Co-recursion produces co-data and co-terminates</li>
+						<li>Co-recursion produces data and is productive (co-terminates)</li>
 						<li>Can always evaluate more in finite time</li>
 					</ul>
 				</section>
@@ -320,9 +321,9 @@ static Stream&lt;A> unfold(S s, F&lt;S, Option&lt;P2&lt;A, S>>> f);
 					<h2>Summary</h2>
 					<ul>
 						<li>Laziness is efficient and modular</li>
-						<li>Separates description of expression and evaluation</li>
+						<li>Separate description of infinite expression and evaluation</li>
 						<li>Reuse description in different contexts</li>
-						<li>Functions can evaluate different portions</li>
+						<li>Functions can evaluate different portion of infinite stream</li>
 					</ul>
 				</section>
 
