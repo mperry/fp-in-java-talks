@@ -149,66 +149,41 @@ static A if2(boolean b, F0&lt;A> onTrue, F0&lt;A> onFalse) {
     return b ? onTrue.f() : onFalse.f();
 }
 
-if2(false, () -> Bottom.error_("fail"), () -> 3)
+if2(false, () -> Bottom.error_("fail"), () -> 3);
 					</code></pre>
 
 				</section>
 
 				<section>
-					<h2>Lazy Values</h2>
+					<h2>Cached Lazy Values</h2>
 					<ul>
-						<li>Can cache result</li>
-						<li>Delay evaluation until used</li>
-						<li>Use keyword lazy</li>
+						<li>If no effects then can cache result</li>
+						<li>memoisation</li>
 					</ul>
 					<pre><code>
-def maybeTwice2(b: Boolean, i: => Int) = {
-	lazy val j = i
-	if (b) j+j else 0
-}
-
-val x = maybeTwice2(true, { println("hi"); 1+41 })
+P1&lt;Integer> p = P.lazy(() -> factorial(100)).memo();
 					</code></pre>
 				</section>
 
 				<section>
 					<h2>Streams</h2>
 					<ul>
+                        <li>A lazy list</li>
+                        <li>Eager head, lazy tail</li>
 						<li>Composed functions on streams use single pass</li>
 					</ul>
 					<pre><code>
-sealed abstract class Stream[+A] {
-	def uncons: Option[Cons[A]]
-	def isEmpty: Boolean = uncons.isEmpty
-}
-object Empty extends Stream[Nothing] {
-	val uncons = None
-}
-sealed abstract class Cons[+A] extends Stream[A] {
-	def head: A
-	def tail: Stream[A]
-	val uncons = Some(this)
-}
+abstract class Stream&lt;A> {
+    abstract A head();
+    P1&lt;Stream&lt;A>> tail();
 
-					</code></pre>
-				</section>
+    static Stream&lt;A> stream(A... as) { ... }
+    static Stream&lt;A> cons(A head, F0&lt;Stream&lt;A>> tail) { ... }
 
-				<section>
-					<h2>Stream Companion</h2>
-					<pre><code>
-object Stream {
-	def empty[A]: Stream[A] = Empty
-	def cons[A](h: => A, t: => Stream[A]): Stream[A] = {
-		new Cons[A] {
-			lazy val head = h
-			lazy val tail = t
-		}
-	}
-	def apply[A](as: A*): Stream[A] =
-		if (as.isEmpty)
-			Empty
-		else
-			cons(as.head, apply(as.tail: _*))
+    &lt;B> Stream&lt;B> map(F&lt;A, B> f) { ... }
+    Stream&lt;A> filter(F&lt;A, Boolean> f) { ... }
+    &lt;B> B fold(F2&lt;B, A, B> f, B b) { ... }
+    &lt;B> Stream&lt;B> bind(F&lt;A, Stream&lt;B>> f) { ... }
 }
 					</code></pre>
 				</section>
@@ -216,9 +191,10 @@ object Stream {
 				<section>
 					<h2>Exercises</h2>
 					<pre><code>
-def toList: List[A]
-def take(n: Int): Stream[A]
-def takeWhile(p: A => Boolean): Stream[A]
+
+static &lt;A> List&lt;A> toList(Stream&lt;A> s);
+static &lt;A> Stream&lt;A> take(Stream&lt;A> s, int n);
+static &lt;A> Stream&lt;A> takeWhile(Stream&lt;A> s, F&lt;A, Boolean> f);
 					</code></pre>
 				</section>
 
@@ -226,48 +202,47 @@ def takeWhile(p: A => Boolean): Stream[A]
 
 					<h2>Separation of Concerns</h2>
 					<ul>
-						<li>Computation descriptions vs evaluation</li>
-						<li>Functions describe, evaluation with arguments</li>
-						<li>Option captured error, pattern match for decision</li>
-						<li>Laziness separates description from evaluation</li>
-						<li>Describe large expression, evaluate part of expression</li>
+                        <li>Laziness separates description from evaluation</li>
+						<li>Describe large expression, evaluate part</li>
 					</ul>
 
 				</section>
 
 				<section>
-					<h2>Example</h2>
+					<h2>Short Circuit Example</h2>
 					<pre><code>
-def exists(p: A => Boolean): Boolean =
-	uncons match {
-		case Some(c) => p(c.head) || c.tail.exists(p)
-		case None => false
+static &lt;A> boolean exists(Stream&lt;A> s, F&lt;A, Boolean>) {
+    if (s.isEmpty()) {
+        return false;
+    } else {
+        return exists(s.tail()._1(), f);
+    }
 }
 					</code></pre>
-					<ul>
-						<li>Or is non-strict</li>
-						<li>Traversal terminates early</li>
-						<li>Tail may never be evaluated</li>
-					</ul>
 				</section>
 
 				<section>
 					<h2>Lazy Fold</h2>
 					<pre><code>
-def exists(p: A => Boolean): Boolean =
-	foldRight(false)((a, b) => p(a) || b)
 
-def foldRight[B](acc: => B)(f: (A, => B) => B): B =
-	uncons match {
-		case Some(c) => f(c.head, c.tail.foldRight(acc)(f))
-		case None => acc
+static &lt;A, B> B foldRight(Stream&lt;A> s, F0&lt;B> acc, F2&lt;F0&lt;B>, A, B> f) {
+    if (s.isEmpty()) {
+        return acc.f();
+    } else {
+        return f.f(() -> foldRight(s.tail()._1(), acc, f), s.head());
+    }
+}
+
+static &lt;A> boolean exists(Stream&lt;A> s, F&lt;A, Boolean> f) {
+    return foldRight(s, () -> false, (lb, a) -> f.f(a) || lb.f());
 }
 					</code></pre>
 					<ul>
-						<li>Function f is lazy in 2nd argument</li>
-						<li>Can reuse foldRight due to laziness</li>
-						<li>Strict foldRight requires function to terminate early</li>
-						<li>Laziness allowed  more reuse!</li>
+						<li>A lazy accumulator</li>
+                        <li>If the head satifies the function then return</li>
+						<li>Reuse foldRight due to laziness</li>
+						<li>Strict foldRight requires early termination</li>
+						<li>Laziness gives more reuse!</li>
 					</ul>
 				</section>
 
@@ -275,8 +250,8 @@ def foldRight[B](acc: => B)(f: (A, => B) => B): B =
 					<h2>Exercise</h2>
 
 						<ul>
-							<li>Use foldRight to implement takeWhile</li>
-							<li>Implement map, filter, append and flatMap using foldRight</li>
+							<li>Use foldRight to implement forAll, takeWhile</li>
+							<li>Implement map, filter, append and bind using foldRight</li>
 						</ul>
 
 				</section>
@@ -284,41 +259,50 @@ def foldRight[B](acc: => B)(f: (A, => B) => B): B =
 				<section>
 					<h2>Example</h2>
 					<pre><code>
-Stream(1,2,3,4).map(_ + 6).filter(_ % 2 == 0).toList
+F&lt;Integer, Integer> add = i -> i + 10;
+F&lt;Integer, Boolean> even = i -> i % 2 == 0;
+stream(1, 2, 3, 4).map(add).filter(even).toList();
 
-cons(1, Stream(2,3,4).map(_ + 4)).filter(_ % 2 == 0).toList
-Stream(2,3,4).map(_ + 4).filter(_ % 2 == 0).toList
-cons(6, Stream(3,4).map(_ + 4)).filter(_ % 2 == 0).toList
-6 :: Stream(3,4).map(_ + 4).filter(_ % 2 == 0).toList
-6 :: cons(cons(7, Stream(4)).map(_ + 4)).filter(_ % 2 == 0).toList
-6 :: Stream(4).map(_ + 4).filter(_ % 2 == 0).toList
-6 :: cons(8, Stream().map(_ + 4)).filter(_ % 2 == 0).toList
-6 :: 8 :: Stream().map(_ + 4).filter(_ % 2 == 0).toList
-6 :: 8 :: List()
+Stream.cons(11, stream(2, 3, 4).map(mf)).filter(ff).toList();
+Stream.stream(2, 3, 4).map(mf).filter(ff).toList();
+Stream.cons(12, stream(3, 4).map(mf)).filter(ff).toList();
+List.cons(12, stream(3, 4).map(mf).filter(ff)).toList();
+List.cons(12, Stream.cons(13, stream(4).map(add)).filter(even).toList());
+List.cons(12, stream(4).map(add).filter(even).toList());
+List.cons(12, Stream.cons(14, Stream.nil().map(add)).filter(even).toList());
+List.cons(12, List.cons(14, Stream.nil().map(add).filter(even).toList()));
+List.cons(12, List.cons(14, List.nil());
+
 					</code></pre>
 					<ul>
-						<li>Process element at a time</li>
+						<li>Process an element at a time</li>
 						<li>Filter and map interleaved</li>
-						<li>No intermediate answers</li>
+						<li>No intermediate answers, memory efficient</li>
 						<li>Streams as first-class loops</li>
-						<li>Memory efficient</li>
 					</ul>
 				</section>
 
 				<section>
 					<h2>Infinite Streams</h2>
+                <ul>
+                    <li>Can create infinite streams because tail is lazy</li>
+                    <li>Only process finite portion</li>
+                </ul>
 					<pre><code>
-val ones: Stream[Int] = cons(1, ones)
-ones.take(5).toList
->>> res0: List[Int] = List(1, 1, 1, 1, 1)
-ones.forAll(x => x == 1)
+Stream&lt;Integer> s1 = Stream.range(1); // [1, 2, 3, ...]
+List&lt;Integer> list = s1.take(5).toList()
+Stream&lt;String> s2 = Stream.from("a"); // ["a", "a", "a", ...]
+
 					</code></pre>
 					Write
 					<pre><code>
-def constant[A](a: A): Stream[A]
-def from(n: Int): Stream[Int]
-def fibonacci(a: Int, b: Int): Stream[Int]
-def unfold[A, S](s: S)(f: S => Option[(A, S)]): Stream[A]
+static &lt;A> Stream&lt;A> cons(A head, F0&lt;Stream&lt;A>> tail);
+
+static &lt;A> Stream&lt;A> repeat(A a);
+static Stream&lt;Integer> from(int i);
+static Stream&lt;Integer> fibonacci(int a, int b);
+static Stream&lt;A> unfold(S s, F&lt;S, Option&lt;P2&lt;A, S>>> f);
+
 					</code></pre>
 				</section>
 

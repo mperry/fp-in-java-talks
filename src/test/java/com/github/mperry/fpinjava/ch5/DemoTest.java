@@ -3,6 +3,8 @@ package com.github.mperry.fpinjava.ch5;
 import fj.Bottom;
 import fj.P;
 import fj.P1;
+import fj.data.Stream;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -24,6 +26,12 @@ public class DemoTest {
 		});
 		P1<Integer> p4 = Bottom.error_("abc");
 
+	}
+
+	@Test
+	public void lazyFold() {
+		boolean b = Solutions.exists(Stream.range(1, 10), i -> i == 3);
+		Assert.assertTrue(b);
 	}
 
 }
