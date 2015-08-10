@@ -30,6 +30,18 @@ public class Solutions {
 		}
 	}
 
+	static <A> Stream<A> takeWhile(Stream<A> s, F<A, Boolean> f) {
+		if (s.isEmpty()) {
+			return s;
+		} else {
+			if (f.f(s.head())) {
+				return Stream.cons(s.head(), P.lazy(() -> takeWhile(s.tail()._1(), f)));
+			} else {
+				return s;
+			}
+		}
+	}
+
 	static <A, B> B foldRight(Stream<A> s, F0<B> acc, F2<F0<B>, A, B> f) {
 		if (s.isEmpty()) {
 			return acc.f();
@@ -46,7 +58,7 @@ public class Solutions {
 		return foldRight(s, () -> true, (lb, a) -> f.f(a) && lb.f());
 	}
 
-	static <A> Stream<A> takeWhile(Stream<A> s, F<A, Boolean> f) {
+	static <A> Stream<A> takeWhile2(Stream<A> s, F<A, Boolean> f) {
 		return foldRight(s, () -> Stream.<A>nil(), (ls, a) -> f.f(a) ? ls.f().cons(a) : Stream.nil());
 	}
 
@@ -55,18 +67,25 @@ public class Solutions {
 	}
 
 	static <A> Stream<A> filter(Stream<A> s, F<A, Boolean> f) {
-		// TODO
-		return null;
+		return foldRight(s, () -> Stream.<A>nil(), (ls, a) ->
+			f.f(a) ? Stream.cons(a, P.lazy(ls)) : ls.f()
+		);
 	}
 
 	static <A> Stream<A> append(Stream<A> s, Stream<A> s2) {
-		// TODO
-		return null;
+		return s.isEmpty() ? s2 :
+				Stream.cons(
+					s.head(),
+					P.lazy(() -> foldRight(s.tail()._1(), () -> Stream.<A>nil(), (ls, a) -> Stream.cons(a, P.lazy(() -> ls.f()))))
+				);
 	}
 
 	static <A, B> Stream<B> bind(Stream<A> s, F<A, Stream<B>> f) {
-		// TODO
-		return null;
+		if (s.isEmpty()) {
+			return Stream.<B>nil();
+		} else {
+			return foldRight(s, () -> Stream.<B>nil(), (ls, a) -> f.f(a).append(ls));
+		}
 	}
 
 	// infinite streams
