@@ -9,10 +9,12 @@ Raw Github chapter links:
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch2/reveal.js-master/index.html[Chapter 2 - Getting Started]
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch3/reveal.js-master/index.html[Chapter 3 - Functional Data Structures]
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch4/reveal.js-master/index.html[Chapter 4 - Errors Without Exceptions]
+* https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch5/reveal.js-master/index.html[Chapter 5 - Strictness and Laziness]
 
 To do the exercises:
 
-* Clone the repo
+* Fork the repo
 * Run `gradlew` from the root directory
 * For Intellij, import the project using the build.gradle file
 * Implement the exercises, e.g. src/main/java/com/github/mperry/fpinjava/ch3/Exercises.java
+* Add, commit and push your changes to your forked repo
