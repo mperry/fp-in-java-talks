@@ -18,7 +18,12 @@ public class Exercises {
 		return result;
 	}
 
-	static <A> List<A> toList(Stream<A> s) {
+
+    static <A> Stream<A> cons(A a, F0<Stream<A>> f) {
+        return Stream.cons(a, P.lazy(f));
+    }
+
+    static <A> List<A> toList(Stream<A> s) {
 		// TODO: use foldLeft above
 		return null;
 	}
@@ -46,7 +51,7 @@ public class Exercises {
 
 	static <A> boolean forAll(Stream<A> s, F<A, Boolean> f) {
 		// TODO: use foldRight
-		return false;
+        return false;
 	}
 
 	static <A> Stream<A> takeWhile2(Stream<A> s, F<A, Boolean> f) {
@@ -75,10 +80,6 @@ public class Exercises {
 	}
 
 	// infinite streams: use cons below to implement each method
-
-    static <A> Stream<A> cons(A a, F0<Stream<A>> f) {
-        return Stream.cons(a, P.lazy(f));
-    }
 
     static <A> Stream<A> repeat(A a) {
 		// TODO
