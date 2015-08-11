@@ -33,6 +33,7 @@ public class Exercises {
 		return null;
 	}
 
+    // implement the lazy foldRight version below
 	static <A, B> B foldRight(Stream<A> s, F0<B> acc, F2<F0<B>, A, B> f) {
 		// TODO
 		return null;
