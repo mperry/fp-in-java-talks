@@ -19,17 +19,17 @@ public class Exercises {
 	}
 
 	static <A> List<A> toList(Stream<A> s) {
-		// TODO
+		// TODO: use foldLeft above
 		return null;
 	}
 
 	static <A> Stream<A> take(Stream<A> s, int n) {
-		// TODO
+		// TODO: use foldLeft above
 		return null;
 	}
 
 	static <A> Stream<A> takeWhile(Stream<A> s, F<A, Boolean> f) {
-		// TODO
+		// TODO: use foldLeft above
 		return null;
 	}
 
@@ -39,48 +39,47 @@ public class Exercises {
 	}
 
 	static <A> boolean exists(Stream<A> s, F<A, Boolean> f) {
-		// TODO
+		// TODO: use foldRight
 		return false;
 	}
 
 	static <A> boolean forAll(Stream<A> s, F<A, Boolean> f) {
-		// TODO
+		// TODO: use foldRight
 		return false;
 	}
 
 	static <A> Stream<A> takeWhile2(Stream<A> s, F<A, Boolean> f) {
-		// TODO
+		// TODO: use foldRight
 		return null;
 	}
 
 	static <A, B> Stream<B> map(Stream<A> s, F<A, B> f) {
-		// TODO
+		// TODO: use foldRight
 		return null;
 	}
 
 	static <A> Stream<A> filter(Stream<A> s, F<A, Boolean> f) {
-		// TODO
+		// TODO: use foldRight
 		return null;
 	}
 
 	static <A> Stream<A> append(Stream<A> s, Stream<A> s2) {
-		// TODO
+		// TODO: use foldRight
 		return null;
 	}
 
 	static <A, B> Stream<B> bind(Stream<A> s, F<A, Stream<B>> f) {
-		// TODO
+		// TODO: use foldRight
 		return null;
 	}
 
-	// infinite streams
+	// infinite streams: use cons below to implement each method
 
-	static <A> Stream<A> cons(A a, F0<Stream<A>> f) {
-		// TODO
-		return null;
-	}
+    static <A> Stream<A> cons(A a, F0<Stream<A>> f) {
+        return Stream.cons(a, P.lazy(f));
+    }
 
-	static <A> Stream<A> repeat(A a) {
+    static <A> Stream<A> repeat(A a) {
 		// TODO
 		return null;
 	}
