@@ -220,7 +220,7 @@ static &lt;A> boolean exists(Stream&lt;A> s, F&lt;A, Boolean>) {
     if (s.isEmpty()) {
         return false;
     } else {
-        return exists(s.tail()._1(), f);
+        return f.f(s.head()) ? true : exists(s.tail()._1(), f);
     }
 }
 					</code></pre>
