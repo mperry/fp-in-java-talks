@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Scala - Purely Functional State</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h2>Purely Functional State</h2>
+					<h3>Functional Programming in Scala</h3>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+
+				<section>
+					<h2>Introduction</h2>
+					<ul>
+						<li>Manipulate state using RNGs</li>
+						<li>Explore issues</li>
+						<li>Pattern of any stateful API</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Standard RNG</h2>
+					<ul>
+						<li>scala.util.Random has imperative API</li>
+						<li>Uses side effects</li>
+
+					<pre><code>
+scala> val rng = new scala.util.Random
+scala> rng.nextDouble
+res1: Double = 0.9867076608154569
+scala> rng.nextDouble
+res2: Double = 0.8455696498024141
+scala> rng.nextInt
+res3: Int = -623297295
+scala> rng.nextInt(10)
+res4: Int = 4
+					</code></pre>
+						<li>Not referentially transparent</li>
+						<li>Harder to test, compose, modularise and parallelise</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Testability</h2>
+					<pre><code>
+def rollDie: Int = {
+	<v></v>al rng = new scala.util.Random
+	rng.nextInt(6)
+}
+					</code></pre>
+					<ul>
+						<li>Off by one error</li>
+						<li>Obvious - complicated defects are subtle</li>
+						<li>Need to reproduce reliably</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Fixing the RNG?</h2>
+					<ul>
+						<li>Pass in the RNG?</li>
+
+					<pre><code>
+def rollDie(rng: scala.util.Random): Int = rng.nextInt(6)
+					</code></pre>
+
+						<li>Same generator needs same state and call sequence</li>
+						<li>Keep track of call sequence?</li>
+						<li>Answer: Eschew side-effects!</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Functional RNG</h2>
+					<ul>
+						<li>Make the updates explicit!</li>
+						<li>Do not update (mutate) value</li>
+						<li>Return new state as result</li>
+						<li>Separate state computation from call sequence</li>
+					</ul>
+<pre><code>
+trait RNG {
+	def nextInt: (Int, RNG)
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>RNG Implementation</h2>
+<pre><code>object RNG {
+	def simple(seed: Long): RNG = new RNG {
+		def nextInt: (Int, RNG) = {
+			val seed2 = (seed*0x5DEECE66DL + 0xBL) & ((1L << 48) - 1)
+			((seed2 >>> 16).asInstanceOf[Int], simple(seed2))
+		}
+	}
+}
+scala> val rng = RNG.simple(42)
+rng: RNG = RNG$$anon$1@3b5074d6
+scala> val (n1, rng2) = rng.nextInt
+n1: Int = 16159453
+rng2: RNG = RNG$$anon$1@6ebc4e13
+scala> val (n2, rng3) = rng2.nextInt
+n2: Int = -1281479697
+rng3: RNG = RNG$$anon$1@24e3e386</code></pre>
+				</section>
+
+				<section>
+					<h2>Pure Stateful APIs</h2>
+					<ul>
+						<li>Make API return next state</li>
+						<li>Use same technique</li>
+					</ul>
+<pre><code>
+class Foo {
+	var s: FooState = ...
+	def bar: Bar
+	def baz: Int
+}
+
+trait Foo2 {
+	def bar: (Bar, Foo2)
+	def baz: (Int, Foo2)
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Using the API</h2>
+<pre><code>
+def randomPair(rng: RNG): ((Int, Int), RNG) = {
+	val (i1, rng2) = rng.nextInt
+	val (i2, rng3) = rng2.nextInt
+	((i1, i2), rng3)
+}
+</code></pre>
+					<ul>
+						<li>Direct use will be tedious</li>
+						<li>Refactor repetition</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Exercises</h2>
+<pre><code>
+	def positiveInt(rng: RNG): (Int, RNG) = ???
+
+	def double(rng: RNG): (Double, RNG) = ???
+
+	def intDouble(rng: RNG): ((Int,Double), RNG) = ???
+	def doubleInt(rng: RNG): ((Double,Int), RNG) = ???
+	def double3(rng: RNG): ((Double,Double,Double), RNG) = ???
+
+	def ints(count: Int)(rng: RNG): (List[Int], RNG) = ???
+</code></pre>
+				</section>
+
+				<section>
+					<h2>State Actions API</h2>
+					<ul>
+						<li>Functions have form: RNG => (A, RNG) </li>
+						<li>State actions or transitions</li>
+						<li>Combine using combinators</li>
+					</ul>
+<pre><code>
+type Rand[+A] = RNG => (A, RNG)
+
+val int: Rand[Int] = _.nextInt
+</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Combinators</h2>
+					<ul>
+						<li>Combine Rand state actions without explicit state</li>
+						<li>DSL similarity?</li>
+					</ul>
+<pre><code>
+type Rand[+A] = RNG => (A, RNG)
+
+// pass RNG action without using it
+def unit[A](a: A): Rand[A] = {
+	rng => (a, rng)
+}
+
+// map the state action A
+def map[A, B](r: Rand[A])(f: A => B): Rand[B] =
+	rng => {
+		val (a, rng2) = r(rng)
+		(f(a), rng2)
+	}
+
+def positiveInt(rng: RNG): (Int, RNG) = ???
+def positiveEven: Rand[Int] =
+	map(positiveInt)(i => i + i % 2)
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Combining State Actions 6.4.1</h2>
+				</section>
+
+				<section>
+					<h2>Afterword</h2>
+					<ul>
+						<li>Functional Programming in Scala, Chiusano and Bjarnason</li>
+						<li>Chapter 6, Purely Functional State</li>
+					</ul>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
