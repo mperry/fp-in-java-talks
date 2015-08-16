@@ -204,21 +204,6 @@ P2&lt;Rng, P2&lt;Long, Long>> randomPair(Rng rng) {
 					</ul>
 				</section>
 
-				<section>
-					<h2>Exercises</h2>
-<pre><code>
-	def positiveInt(rng: RNG): (Int, RNG) = ???
-
-	def double(rng: RNG): (Double, RNG) = ???
-
-	def intDouble(rng: RNG): ((Int,Double), RNG) = ???
-	def doubleInt(rng: RNG): ((Double,Int), RNG) = ???
-	def double3(rng: RNG): ((Double,Double,Double), RNG) = ???
-
-	def ints(count: Int)(rng: RNG): (List[Int], RNG) = ???
-</code></pre>
-				</section>
-
                 <section>
                     <h2>State Abstracton</h2>
                     <img src="../../images/rng2.png" height="450">
@@ -229,7 +214,7 @@ P2&lt;Rng, P2&lt;Long, Long>> randomPair(Rng rng) {
 <pre><code>
 class State&lt;S, A> {
     F&lt;S, P2&lt;S, A>> run;
-    static &lt;S, A> State&lt;S, A> state(F&lt;S, P2&lt;S, A>> f) {...}
+    static &lt;S, A> State&lt;S, A> unit(F&lt;S, P2&lt;S, A>> f) {...}
 
     P2&lt;S, A> run(S s);
     A eval(S s);
@@ -280,7 +265,7 @@ static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, St
                 <section>
                     <h2>Exercises</h2>
                     <pre><code>
-staticf State&lt;S, Unit> set(S s);
+static State&lt;S, Unit> set(S s);
 static State&lt;S, S> get();
 static State&lt;S, Unit> modify(State&lt;S, A> s, F&lt;S, S> f);
                     </code></pre>
