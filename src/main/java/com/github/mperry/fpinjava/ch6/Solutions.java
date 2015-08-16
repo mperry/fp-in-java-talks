@@ -4,6 +4,7 @@ import fj.F;
 import fj.F2;
 import fj.P;
 import fj.P2;
+import fj.Unit;
 import fj.data.List;
 import fj.data.State;
 
@@ -55,5 +56,20 @@ public class Solutions {
 	// imperative exercises
 
 
+	static <S> State<S, Unit> set(S s) {
+		return State.unit(st -> P.p(s, Unit.unit()));
+	}
+
+	static <S> State<S, S> get() {
+		return State.unit(s -> P.p(s, s));
+	}
+
+	static <S, A> State<S, Unit> modify(State<S, A> st, F<S, S> f) {
+		return State.unit(s -> {
+			P2<S, A> p = st.run(s);
+			S s2 = f.f(p._1());
+			return P.p(s2, Unit.unit());
+		});
+	}
 
 }
