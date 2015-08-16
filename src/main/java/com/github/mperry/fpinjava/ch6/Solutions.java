@@ -16,18 +16,18 @@ public class Solutions {
 		return State.<S, A>unit(s -> P.p(s, a));
 	}
 	
-	static <S, A, B> State<S, B> map(State<S, A> s, F<A, B> f){
-		return State.<S, B>unit(s2 -> {
-			P2<S, A> p = s.run(s2);
+	static <S, A, B> State<S, B> map(State<S, A> st, F<A, B> f){
+		return State.<S, B>unit(s -> {
+			P2<S, A> p = st.run(s);
 			B b = f.f(p._2());
 			return P.p(p._1(), b);
 		});
 	}
 
-	static <S, A, B, C> State<S, C> map2(State<S, A> s1, State<S, B> s2, F2<A, B, C> f) {
-		return State.<S, C>unit(s3 -> {
-			P2<S, A> p1 = s1.run(s3);
-			P2<S, B> p2 = s2.run(p1._1());
+	static <S, A, B, C> State<S, C> map2(State<S, A> st1, State<S, B> st2, F2<A, B, C> f) {
+		return State.<S, C>unit(s -> {
+			P2<S, A> p1 = st1.run(s);
+			P2<S, B> p2 = st2.run(p1._1());
 			C c = f.f(p1._2(), p2._2());
 			return P.p(p2._1(), c);
 		});
@@ -42,8 +42,8 @@ public class Solutions {
 	}
 
 	static <S, A> State<S, List<A>> sequence(List<State<S, A>> list) {
-		return list.foldLeft((State<S, List<A>> acc, State<S, A> ma) ->
-			acc.flatMap((List<A> xs) -> ma.map((A a) -> xs.snoc(a))),
+		return list.foldLeft((State<S, List<A>> acc, State<S, A> st) ->
+			acc.flatMap((List<A> as) -> st.map((A a) -> as.snoc(a))),
 			constant(List.<A>nil())
 		);
 	}
