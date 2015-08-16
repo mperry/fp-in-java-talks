@@ -82,7 +82,7 @@
 Random rng = new java.util.Random();
 rng.nextInt(); // 500348701
 rng.nextInt(); // -350347772
-rng.nextInt(5); // 4 [0, 5)
+rng.nextInt(5); // 4, range = [0, 4]
 rng.nextInt(5); // 1
 					</code></pre>
 						<li>Not referentially transparent</li>
@@ -94,8 +94,8 @@ rng.nextInt(5); // 1
 					<h2>Testability</h2>
 					<pre><code>
 int rollDie() {
-	Random rng = new java.util.Random();
-	return rng.nextInt(6); // [0, 5], but want [1, 6]
+    Random rng = new java.util.Random();
+    return rng.nextInt(6); // [0, 5], but want [1, 6]
 }
 					</code></pre>
 					<ul>
@@ -130,42 +130,44 @@ int rollDie(Random rng) {
 						<li>Separate state computation from call sequence</li>
 					</ul>
 <pre><code>
-class RNG {
-	P2&lt;Integer, RNG> nextInt();
-    P2&lt;Long, RNG> nextLong();
+class Rng {
+    P2&lt;Rng, Integer> nextInt();
+    P2&lt;Rng, Integer> nextInt(int max); // [0, max - 1]
+    P2&lt;Rng, Long> nextLong();
+    P2&lt;Rng, Double> nextDouble();
 }
 </code></pre>
 				</section>
 
 				<section>
 					<h2>RNG Implementation</h2>
-<pre><code> // Linear Congruential Generator
+<pre><code>// Linear Congruential Generator
 class LcgRng {
     private long seed;
     private LcgRng(long seed) { ... }
-    static rng(long seed) { ... }
+    static Rng rng(long seed) { ... }
 
-    P2&lt;Long, RNG> nextLong() {
+    P2&lt;Rng, Long> nextLong() {
         long newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL;
         long n = (Long) (newSeed >>> 16);
         return P.p(n, rng(newSeed));
     }
 }
-> RNG r = LcgRng.rng(10);
-> rng.nextLong()._1();
-> rng.nextLong()._1();
-
-rng.nextLong()._2().nextLong()
-
-scala> val rng = RNG.simple(42)
-rng: RNG = RNG$$anon$1@3b5074d6
-scala> val (n1, rng2) = rng.nextInt
-n1: Int = 16159453
-rng2: RNG = RNG$$anon$1@6ebc4e13
-scala> val (n2, rng3) = rng2.nextInt
-n2: Int = -1281479697
-rng3: RNG = RNG$$anon$1@24e3e386</code></pre>
+</code></pre>
+<pre><code>Rng r = LcgRng.rng(10);
+P2&lt;Rng, Integer> p = r.nextLong();
+r.nextLong()._2(); // 3847489
+r.nextLong()._2(); // 3847489
+Rng r2 = r.nextLong()._1();
+r2.nextLong()._2(); // 1334288366
+</code></pre>
 				</section>
+
+                <section>
+
+                    <h2>RNG Diagram</h2>
+                    <img src="../../images/rng.png" height="350">
+                </section>
 
 				<section>
 					<h2>Pure Stateful APIs</h2>
@@ -175,14 +177,14 @@ rng3: RNG = RNG$$anon$1@24e3e386</code></pre>
 					</ul>
 <pre><code>
 class Foo {
-	var s: FooState = ...
-	def bar: Bar
-	def baz: Int
+    FooState state;
+    Bar bar();
+    int baz();
 }
 
-trait Foo2 {
-	def bar: (Bar, Foo2)
-	def baz: (Int, Foo2)
+class Foo2 {
+    P2&lt;FooState, Bar> bar(FooState fs);
+    P2&lt;FooState, Int> baz(FooState fs);
 }
 </code></pre>
 				</section>
@@ -190,10 +192,10 @@ trait Foo2 {
 				<section>
 					<h2>Using the API</h2>
 <pre><code>
-def randomPair(rng: RNG): ((Int, Int), RNG) = {
-	val (i1, rng2) = rng.nextInt
-	val (i2, rng3) = rng2.nextInt
-	((i1, i2), rng3)
+P2&lt;Rng, P2&lt;Long, Long>> randomPair(Rng rng) {
+    P2&lt;Rng, Long> p1 = rng.nextLong();
+    P2&lt;Rng, Long> p2 = p1._1().nextLong();
+    return P.p(p2._1(), P.p(p1._2(), p2._2()));
 }
 </code></pre>
 					<ul>
@@ -217,52 +219,72 @@ def randomPair(rng: RNG): ((Int, Int), RNG) = {
 </code></pre>
 				</section>
 
-				<section>
-					<h2>State Actions API</h2>
-					<ul>
-						<li>Functions have form: RNG => (A, RNG) </li>
-						<li>State actions or transitions</li>
-						<li>Combine using combinators</li>
-					</ul>
+                <section>
+                    <h2>State Abstracton</h2>
+                    <img src="../../images/rng2.png" height="450">
+                </section>
+
+                <section>
+                    <h2>State Class</h2>
 <pre><code>
-type Rand[+A] = RNG => (A, RNG)
+class State&lt;S, A> {
+    F&lt;S, P2&lt;S, A>> run;
+    static &lt;S, A> State&lt;S, A> state(F&lt;S, P2&lt;S, A>> f) {...}
 
-val int: Rand[Int] = _.nextInt
-</code></pre>
-
-				</section>
-
-				<section>
-					<h2>Combinators</h2>
-					<ul>
-						<li>Combine Rand state actions without explicit state</li>
-						<li>DSL similarity?</li>
-					</ul>
-<pre><code>
-type Rand[+A] = RNG => (A, RNG)
-
-// pass RNG action without using it
-def unit[A](a: A): Rand[A] = {
-	rng => (a, rng)
+    P2&lt;S, A> run(S s);
+    A eval(S s);
+    S exec(S s);
 }
-
-// map the state action A
-def map[A, B](r: Rand[A])(f: A => B): Rand[B] =
-	rng => {
-		val (a, rng2) = r(rng)
-		(f(a), rng2)
-	}
-
-def positiveInt(rng: RNG): (Int, RNG) = ???
-def positiveEven: Rand[Int] =
-	map(positiveInt)(i => i + i % 2)
 </code></pre>
-				</section>
+                </section>
 
-				<section>
-					<h2>Combining State Actions 6.4.1</h2>
-				</section>
+                <section>
+                    <h2>Example Usage</h2>
+<pre><code>
+    Rng r = LcgRng.rng(10);
+    State &lt;Rng, Long> s1 = State.state(rng -> rng.nextLong());
+    P2&lt;Rng, Long> p = s1.run(r);
+    Long l = s1.eval(r); // 3847489
+    Rng r2 = s1.exec(r);
 
+    // use sequence to get a list of random longs
+    // static &lt;S, A, B> State&lt;S, List&lt;A>> sequence(List&lt;State&lt;S, A>> list);
+    List&lt;Long> nums = sequence(List.replicate(10, s1)).eval(r);
+</code></pre>
+                </section>
+
+                <section>
+                    <h2>Exercises</h2>
+                    <pre><code>
+static &lt;S, A> State&lt;S, A> constant(A a);
+static &lt;S, A, B> State&lt;S, B> map(State&lt;S, A> s, F&lt;A, B> f);
+static &lt;S, A, B, C> State&lt;S, C> map2(State&lt;S, A> s1, State&lt;S, B> s2, F2&lt;A, B, C> f);
+static &lt;S, A, B> State&lt;S, B> flatMap(State&lt;S, A> s, F&lt;A, State&lt;S, B>> f);
+static &lt;S, A, B> State&lt;S, List&lt;A>> sequence(List&lt;State&lt;S, A>> list);
+static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, State&lt;S, B>> f);
+                    </code></pre>
+                </section>
+
+                <section>
+
+                    <h2>Imperative Programming</h2>
+                        <ul>
+                            <li>Sequence of statements modifying program state</li>
+                            <li>Statements are state transitions</li>
+                            <li>Program with state with side effects and with RT</li>
+                        </ul>
+
+                </section>
+
+
+                <section>
+                    <h2>Exercises</h2>
+                    <pre><code>
+staticf State&lt;S, Unit> set(S s);
+static State&lt;S, S> get();
+static State&lt;S, Unit> modify(State&lt;S, A> s, F&lt;S, S> f);
+                    </code></pre>
+                </section>
 				<section>
 					<h2>Afterword</h2>
 					<ul>
