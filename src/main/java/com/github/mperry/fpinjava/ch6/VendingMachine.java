@@ -9,8 +9,10 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface VendingMachine {
 
-	int coins();
-	int items();
 	boolean locked();
+	int items();
+	int coins();
+
+
 
 }

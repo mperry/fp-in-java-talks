@@ -8,6 +8,8 @@ import fj.Unit;
 import fj.data.List;
 import fj.data.State;
 
+import static fj.P.p;
+
 /**
  * Created by MarkPerry on 16/08/2015.
  */
@@ -70,6 +72,10 @@ public class Solutions {
 			S s2 = f.f(p._1());
 			return P.p(s2, Unit.unit());
 		});
+	}
+
+	public static <S> State<S, S> init() {
+		return State.unit(s -> p(s, s));
 	}
 
 }

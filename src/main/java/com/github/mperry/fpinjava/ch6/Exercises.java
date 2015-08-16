@@ -8,6 +8,8 @@ import fj.Unit;
 import fj.data.List;
 import fj.data.State;
 
+import static fj.P.p;
+
 /**
  * Created by MarkPerry on 16/08/2015.
  */
@@ -53,4 +55,7 @@ public class Exercises {
 		return null;
 	}
 
+	public static <S> State<S, S> init() {
+		return null;
+	}
 }

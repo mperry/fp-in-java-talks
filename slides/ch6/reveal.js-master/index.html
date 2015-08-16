@@ -267,6 +267,7 @@ static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, St
 static &lt;S> State&lt;S, Unit> set(S s);
 static &lt;S> State&lt;S, S> get();
 static &lt;S, A> State&lt;S, Unit> modify(State&lt;S, A> s, F&lt;S, S> f);
+static &lt;S> State&lt;S, S> init();
                     </code></pre>
                 </section>
 				<section>
