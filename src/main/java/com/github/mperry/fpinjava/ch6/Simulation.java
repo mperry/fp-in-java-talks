@@ -5,15 +5,15 @@ import fj.data.List;
 import fj.data.State;
 import org.junit.Test;
 
-import static com.github.mperry.fpinjava.ch6.VM_Demo.Input.COIN;
-import static com.github.mperry.fpinjava.ch6.VM_Demo.Input.TURN;
+import static com.github.mperry.fpinjava.ch6.Simulation.Input.COIN;
+import static com.github.mperry.fpinjava.ch6.Simulation.Input.TURN;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
  * Created by MarkPerry on 17/08/2015.
  */
-public class VM_Demo {
+public class Simulation {
 
 	static enum Input { COIN, TURN };
 
