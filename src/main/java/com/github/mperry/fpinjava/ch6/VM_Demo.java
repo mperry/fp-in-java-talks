@@ -1,5 +1,6 @@
 package com.github.mperry.fpinjava.ch6;
 
+import fj.P2;
 import fj.data.List;
 import fj.data.State;
 import org.junit.Test;
@@ -44,9 +45,14 @@ public class VM_Demo {
 	@Test
 	public void test() {
 		State<VendingMachine, VendingMachine> st = simulate(List.list(COIN, TURN, TURN, COIN, COIN, TURN));
-		VendingMachine vm = st.eval(vm(true, 5, 0));
+		VendingMachine start = vm(true, 5, 0);
+
+		P2<VendingMachine, VendingMachine> p = st.run(start);
+		System.out.println(p);
+
+		VendingMachine actual = st.eval(start);
 		VendingMachine oracle = vm(true, 3, 2);
-		assertThat(oracle, equalTo(vm));
+		assertThat(oracle, equalTo(actual));
 	}
 
 
