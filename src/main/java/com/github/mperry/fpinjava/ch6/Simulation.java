@@ -42,8 +42,8 @@ public class Simulation {
 		return list.foldLeft((st, i) -> st.map(vm -> next(vm, i)), State.init());
 	}
 
-	@Test
-	public void test() {
+
+	static VendingMachine simulate() {
 		State<VendingMachine, VendingMachine> st = simulate(List.list(COIN, TURN, TURN, COIN, COIN, TURN));
 		VendingMachine start = vm(true, 5, 0);
 
@@ -51,8 +51,18 @@ public class Simulation {
 		System.out.println(p);
 
 		VendingMachine actual = st.eval(start);
+		return actual;
+	}
+
+	@Test
+	public void test() {
+		VendingMachine actual = simulate();
 		VendingMachine oracle = vm(true, 3, 2);
 		assertThat(oracle, equalTo(actual));
+	}
+
+	public static void main(String args[]) {
+		simulate();
 	}
 
 
