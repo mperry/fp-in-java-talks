@@ -10,6 +10,7 @@ Raw Github chapter links:
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch3/reveal.js-master/index.html[Chapter 3 - Functional Data Structures]
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch4/reveal.js-master/index.html[Chapter 4 - Errors Without Exceptions]
 * https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch5/reveal.js-master/index.html[Chapter 5 - Strictness and Laziness]
+* https://rawgit.com/mperry/fp-in-java-talks/master/slides/ch6/reveal.js-master/index.html[Chapter 6 - Purely Functional State]
 
 To do the exercises:
 
