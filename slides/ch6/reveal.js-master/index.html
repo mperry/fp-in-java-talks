@@ -257,7 +257,7 @@ static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, St
                         <ul>
                             <li>Sequence of statements modifying program state</li>
                             <li>Statements are state transitions</li>
-                            <li>Learned to use immutable state with RT</li>
+                            <li>Contrast: Limited immutable state with RT</li>
                         </ul>
 
                 </section>
@@ -289,6 +289,16 @@ static &lt;S> State&lt;S, S> init();
                     </table>
 
 
+                </section>
+
+                <section>
+                    <h2>Summary</h2>
+                    <ul>
+                        <li>FP programs with state</li>
+                        <li>RNG example to motivate</li>
+                        <li>Use function that takes state and returns new state and a result</li>
+                        <li>State functions make this simple</li>
+                    </ul>
                 </section>
 
 				<section>
