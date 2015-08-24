@@ -18,8 +18,7 @@ public class SimulationSolution {
 	static enum Input {COIN, DOOR};
 
 	static VendingMachine vm(boolean locked, int items, int coins) {
-		VendingMachine vm = ImmutableVendingMachine.builder().coins(coins).items(items).locked(locked).build();
-		return vm;
+		return ImmutableVendingMachine.builder().coins(coins).items(items).locked(locked).build();
 	}
 
 	static VendingMachine next(VendingMachine vm, Input i) {
@@ -38,27 +37,26 @@ public class SimulationSolution {
 		}
 	}
 
-	static State<VendingMachine, VendingMachine> simulate(List<Input> list) {
-		return list.foldLeft((st, i) -> st.map(vm -> next(vm, i)), State.init());
+	static State<VendingMachine, VendingMachine> createState(List<Input> list) {
+		return list.foldLeft((st, i) ->
+            st.map(vm -> next(vm, i)), State.init()
+        );
 	}
-
 
 	static VendingMachine simulate() {
-		State<VendingMachine, VendingMachine> st = simulate(List.list(COIN, DOOR, DOOR, COIN, COIN, DOOR));
-		VendingMachine start = vm(true, 5, 0);
-
-		P2<VendingMachine, VendingMachine> p = st.run(start);
-		System.out.println(p);
-
-		VendingMachine actual = st.eval(start);
-		return actual;
+        return simulate(vm(true, 5, 0), List.list(COIN, DOOR, DOOR, COIN, COIN, DOOR));
 	}
 
-	@Test
+    static VendingMachine simulate(VendingMachine start, List<Input> list) {
+        State<VendingMachine, VendingMachine> st = createState(list);
+        P2<VendingMachine, VendingMachine> p = st.run(start);
+        System.out.println(p);
+        return p._2();
+    }
+
+    @Test
 	public void test() {
-		VendingMachine actual = simulate();
-		VendingMachine oracle = vm(true, 3, 2);
-		assertThat(oracle, equalTo(actual));
+		assertThat(simulate(), equalTo(vm(true, 3, 2)));
 	}
 
 	public static void main(String args[]) {
