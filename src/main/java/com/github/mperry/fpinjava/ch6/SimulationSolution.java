@@ -18,20 +18,20 @@ public class SimulationSolution {
 	static enum Input {COIN, DOOR};
 
 	static VendingMachine vm(boolean locked, int items, int coins) {
-		return ImmutableVendingMachine.builder().coins(coins).items(items).locked(locked).build();
+		return ImmutableVendingMachine.builder().coins(coins).items(items).isLocked(locked).build();
 	}
 
 	static VendingMachine next(VendingMachine vm, Input i) {
-		if (vm.items() == 0) {
+		if (vm.getItems() == 0) {
 			return vm;
-		} else if (!vm.locked() && i == COIN) {
+		} else if (!vm.isLocked() && i == COIN) {
 			return vm;
-		} else if (vm.locked() && i == DOOR) {
+		} else if (vm.isLocked() && i == DOOR) {
 			return vm;
-		} else if (vm.locked() && i == COIN) {
-			return vm(false, vm.items(), vm.coins() + 1);
-		} else if (!vm.locked() && i == DOOR) {
-			return vm(true, vm.items() - 1, vm.coins());
+		} else if (vm.isLocked() && i == COIN) {
+			return vm(false, vm.getItems(), vm.getCoins() + 1);
+		} else if (!vm.isLocked() && i == DOOR) {
+			return vm(true, vm.getItems() - 1, vm.getCoins());
 		} else {
 			return vm;
 		}

@@ -18,7 +18,7 @@ public class SimulationExercise {
     static enum Input {COIN, DOOR};
 
     static VendingMachine vm(boolean locked, int items, int coins) {
-        return ImmutableVendingMachine.builder().coins(coins).items(items).locked(locked).build();
+        return ImmutableVendingMachine.builder().coins(coins).items(items).isLocked(locked).build();
     }
 
     static VendingMachine next(VendingMachine vm, Input i) {
