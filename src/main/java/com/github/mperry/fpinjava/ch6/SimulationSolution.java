@@ -5,17 +5,17 @@ import fj.data.List;
 import fj.data.State;
 import org.junit.Test;
 
-import static com.github.mperry.fpinjava.ch6.Simulation.Input.COIN;
-import static com.github.mperry.fpinjava.ch6.Simulation.Input.TURN;
+import static com.github.mperry.fpinjava.ch6.SimulationSolution.Input.COIN;
+import static com.github.mperry.fpinjava.ch6.SimulationSolution.Input.DOOR;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
  * Created by MarkPerry on 17/08/2015.
  */
-public class Simulation {
+public class SimulationSolution {
 
-	static enum Input { COIN, TURN };
+	static enum Input {COIN, DOOR};
 
 	static VendingMachine vm(boolean locked, int items, int coins) {
 		VendingMachine vm = ImmutableVendingMachine.builder().coins(coins).items(items).locked(locked).build();
@@ -27,11 +27,11 @@ public class Simulation {
 			return vm;
 		} else if (!vm.locked() && i == COIN) {
 			return vm;
-		} else if (vm.locked() && i == TURN) {
+		} else if (vm.locked() && i == DOOR) {
 			return vm;
 		} else if (vm.locked() && i == COIN) {
 			return vm(false, vm.items(), vm.coins() + 1);
-		} else if (!vm.locked() && i == TURN) {
+		} else if (!vm.locked() && i == DOOR) {
 			return vm(true, vm.items() - 1, vm.coins());
 		} else {
 			return vm;
@@ -44,7 +44,7 @@ public class Simulation {
 
 
 	static VendingMachine simulate() {
-		State<VendingMachine, VendingMachine> st = simulate(List.list(COIN, TURN, TURN, COIN, COIN, TURN));
+		State<VendingMachine, VendingMachine> st = simulate(List.list(COIN, DOOR, DOOR, COIN, COIN, DOOR));
 		VendingMachine start = vm(true, 5, 0);
 
 		P2<VendingMachine, VendingMachine> p = st.run(start);
