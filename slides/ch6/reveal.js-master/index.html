@@ -201,6 +201,7 @@ P2&lt;Rng, P2&lt;Long, Long>> randomPair(Rng rng) {
 					<ul>
 						<li>Direct use will be tedious</li>
 						<li>Refactor repetition</li>
+                        <li>Pattern of generating next state</li>
 					</ul>
 				</section>
 
@@ -227,7 +228,7 @@ class State&lt;S, A> {
                     <h2>Example Usage</h2>
 <pre><code>
     Rng r = LcgRng.rng(10);
-    State &lt;Rng, Long> s1 = State.state(rng -> rng.nextLong());
+    State&lt;Rng, Long> s1 = State.state(rng -> rng.nextLong());
     P2&lt;Rng, Long> p = s1.run(r);
     Long l = s1.eval(r); // 3847489
     Rng r2 = s1.exec(r);
@@ -256,7 +257,7 @@ static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, St
                         <ul>
                             <li>Sequence of statements modifying program state</li>
                             <li>Statements are state transitions</li>
-                            <li>Program with state with side effects and with RT</li>
+                            <li>Contrast: Limited immutable state with RT</li>
                         </ul>
 
                 </section>
@@ -270,6 +271,36 @@ static &lt;S, A> State&lt;S, Unit> modify(State&lt;S, A> s, F&lt;S, S> f);
 static &lt;S> State&lt;S, S> init();
                     </code></pre>
                 </section>
+
+                <section>
+                    <h2>Challenge - Vending Machine</h2>
+                    <table>
+                        <tr>
+                            <td><img src="../../images/vm.png" height="250"></td>
+                            <td>
+                                <ul>
+                                    <li>A vending machine has items to dispense and a number of coins inside from previous usage.</li>
+                                    <li>It is initially locked.</li>
+                                    <li>When a coin is inserted the machine unlocks and the user opens the door to get their item.</li>
+                                    <li>After being successfully opened the machine is locked again.</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+
+
+                </section>
+
+                <section>
+                    <h2>Summary</h2>
+                    <ul>
+                        <li>FP programs with state</li>
+                        <li>RNG example to motivate</li>
+                        <li>Use function that takes state and returns new state and a result</li>
+                        <li>State functions make this simple</li>
+                    </ul>
+                </section>
+
 				<section>
 					<h2>Afterword</h2>
 					<ul>
