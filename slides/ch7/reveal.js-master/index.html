@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional Programming In Java - Purely Functional State</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Mark Perry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h2>Purely Functional State</h2>
+					<h3>Functional Programming in Java</h3>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+				</section>
+
+				<section>
+					<h2>Introduction</h2>
+					<ul>
+						<li>Learn to manipulate state using RNGs</li>
+						<li>Explore issues</li>
+						<li>Pattern of any stateful API</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Standard RNG</h2>
+					<ul>
+						<li>java.util.Random has imperative API</li>
+						<li>Uses side effects</li>
+
+					<pre><code>
+Random rng = new java.util.Random();
+rng.nextInt(); // 500348701
+rng.nextInt(); // -350347772
+rng.nextInt(5); // 4, range = [0, 4]
+rng.nextInt(5); // 1
+					</code></pre>
+						<li>Not referentially transparent</li>
+						<li>Harder to test, compose, modularise and parallelise</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Testability</h2>
+					<pre><code>
+int rollDie() {
+    Random rng = new java.util.Random();
+    return rng.nextInt(6); // [0, 5], but want [1, 6]
+}
+					</code></pre>
+					<ul>
+						<li>Off by one error</li>
+						<li>Obvious - complicated defects are subtle</li>
+						<li>Need to reproduce reliably</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Fixing the RNG?</h2>
+					<ul>
+						<li>Pass in the RNG?</li>
+
+					<pre><code>
+int rollDie(Random rng) {
+    return rng.nextInt(6); // [0, 5]
+}
+					</code></pre>
+						<li>Generator needs same seed and call sequence to reproduce</li>
+						<li>Keep track of call sequence?</li>
+						<li>Answer: Reject side-effects!</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Functional RNG</h2>
+					<ul>
+						<li>Make the updates explicit!</li>
+						<li>Do not mutate RNG</li>
+						<li>Return new state as result</li>
+						<li>Separate state computation from call sequence</li>
+					</ul>
+<pre><code>
+class Rng {
+    P2&lt;Rng, Integer> nextInt();
+    P2&lt;Rng, Integer> nextInt(int max); // [0, max - 1]
+    P2&lt;Rng, Long> nextLong();
+    P2&lt;Rng, Double> nextDouble();
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>RNG Implementation</h2>
+<pre><code>// Linear Congruential Generator
+class LcgRng {
+    private long seed;
+    private LcgRng(long seed) { ... }
+    static Rng rng(long seed) { ... }
+
+    P2&lt;Rng, Long> nextLong() {
+        long newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL;
+        long n = (Long) (newSeed >>> 16);
+        return P.p(n, rng(newSeed));
+    }
+}
+</code></pre>
+<pre><code>Rng r = LcgRng.rng(10);
+P2&lt;Rng, Integer> p = r.nextLong();
+r.nextLong()._2(); // 3847489
+r.nextLong()._2(); // 3847489
+Rng r2 = r.nextLong()._1();
+r2.nextLong()._2(); // 1334288366
+</code></pre>
+				</section>
+
+                <section>
+
+                    <h2>RNG Diagram</h2>
+                    <img src="../../images/rng.png" height="350">
+                </section>
+
+				<section>
+					<h2>Pure Stateful APIs</h2>
+					<ul>
+						<li>Make API return next state</li>
+						<li>Use same technique</li>
+					</ul>
+<pre><code>
+class Foo {
+    FooState state;
+    Bar bar();
+    int baz();
+}
+
+class Foo2 {
+    P2&lt;FooState, Bar> bar(FooState fs);
+    P2&lt;FooState, Int> baz(FooState fs);
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Using the API</h2>
+<pre><code>
+P2&lt;Rng, P2&lt;Long, Long>> randomPair(Rng rng) {
+    P2&lt;Rng, Long> p1 = rng.nextLong();
+    P2&lt;Rng, Long> p2 = p1._1().nextLong();
+    return P.p(p2._1(), P.p(p1._2(), p2._2()));
+}
+</code></pre>
+					<ul>
+						<li>Direct use will be tedious</li>
+						<li>Refactor repetition</li>
+					</ul>
+				</section>
+
+                <section>
+                    <h2>State Abstracton</h2>
+                    <img src="../../images/rng2.png" height="450">
+                </section>
+
+                <section>
+                    <h2>State Class</h2>
+<pre><code>
+class State&lt;S, A> {
+    F&lt;S, P2&lt;S, A>> run;
+    static &lt;S, A> State&lt;S, A> unit(F&lt;S, P2&lt;S, A>> f) {...}
+
+    P2&lt;S, A> run(S s);
+    A eval(S s);
+    S exec(S s);
+}
+</code></pre>
+                </section>
+
+                <section>
+                    <h2>Example Usage</h2>
+<pre><code>
+    Rng r = LcgRng.rng(10);
+    State &lt;Rng, Long> s1 = State.state(rng -> rng.nextLong());
+    P2&lt;Rng, Long> p = s1.run(r);
+    Long l = s1.eval(r); // 3847489
+    Rng r2 = s1.exec(r);
+
+    // use sequence to get a list of random longs
+    // static &lt;S, A, B> State&lt;S, List&lt;A>> sequence(List&lt;State&lt;S, A>> list);
+    List&lt;Long> nums = sequence(List.replicate(10, s1)).eval(r);
+</code></pre>
+                </section>
+
+                <section>
+                    <h2>Exercises</h2>
+                    <pre><code>
+static &lt;S, A> State&lt;S, A> constant(A a);
+static &lt;S, A, B> State&lt;S, B> map(State&lt;S, A> s, F&lt;A, B> f);
+static &lt;S, A, B, C> State&lt;S, C> map2(State&lt;S, A> s1, State&lt;S, B> s2, F2&lt;A, B, C> f);
+static &lt;S, A, B> State&lt;S, B> flatMap(State&lt;S, A> s, F&lt;A, State&lt;S, B>> f);
+static &lt;S, A, B> State&lt;S, List&lt;A>> sequence(List&lt;State&lt;S, A>> list);
+static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, State&lt;S, B>> f);
+                    </code></pre>
+                </section>
+
+                <section>
+
+                    <h2>Imperative Programming</h2>
+                        <ul>
+                            <li>Sequence of statements modifying program state</li>
+                            <li>Statements are state transitions</li>
+                            <li>Program with state with side effects and with RT</li>
+                        </ul>
+
+                </section>
+
+                <section>
+                    <h2>Exercises</h2>
+                    <pre><code>
+static &lt;S> State&lt;S, Unit> set(S s);
+static &lt;S> State&lt;S, S> get();
+static &lt;S, A> State&lt;S, Unit> modify(State&lt;S, A> s, F&lt;S, S> f);
+static &lt;S> State&lt;S, S> init();
+                    </code></pre>
+                </section>
+				<section>
+					<h2>Afterword</h2>
+					<ul>
+						<li>Functional Programming in Scala, Chiusano and Bjarnason</li>
+						<li>Chapter 6, Purely Functional State</li>
+					</ul>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
