@@ -193,9 +193,9 @@ class Foo2 {
 					<h2>Using the API</h2>
 <pre><code>
 P2&lt;Rng, P2&lt;Long, Long>> randomPair(Rng rng) {
-    P2&lt;Rng, Long> p1 = rng.nextLong();
-    P2&lt;Rng, Long> p2 = p1._1().nextLong();
-    return P.p(p2._1(), P.p(p1._2(), p2._2()));
+    P2&lt;Rng, Long> t1 = rng.nextLong();
+    P2&lt;Rng, Long> t2 = t1._1().nextLong();
+    return p(t2._1(), p(t1._2(), t2._2()));
 }
 </code></pre>
 					<ul>
@@ -228,7 +228,7 @@ class State&lt;S, A> {
                     <h2>Example Usage</h2>
 <pre><code>
     Rng r = LcgRng.rng(10);
-    State&lt;Rng, Long> s1 = State.state(rng -> rng.nextLong());
+    State&lt;Rng, Long> s1 = State.unit(rng -> rng.nextLong());
     P2&lt;Rng, Long> p = s1.run(r);
     Long l = s1.eval(r); // 3847489
     Rng r2 = s1.exec(r);
@@ -257,9 +257,12 @@ static &lt;S, A, B> State&lt;S, List&lt;B>> traverse(List&lt;A> list, F&lt;A, St
                         <ul>
                             <li>Sequence of statements modifying program state</li>
                             <li>Statements are state transitions</li>
+                            <li>State is every reachable object</li>
                             <li>Contrast: Limited immutable state with RT</li>
                         </ul>
-
+                    <p/>
+                    <br/>
+                    <img src="../../images/system-state-imperative.png" width="800">
                 </section>
 
                 <section>
@@ -301,7 +304,35 @@ static &lt;S> State&lt;S, S> init();
                     </ul>
                 </section>
 
-				<section>
+                <section>
+                    <h2>The FP Road</h2>
+                    <center>
+                        <table>
+                            <tr>
+                                <td>
+                                    <li>Introduction</li>
+                                    <li>Data Structures</li>
+                                    <li>Errors without exceptions</li>
+                                    <li>Strictness and Laziness</li>
+                                    <li>Purely Functional State</li>
+                                    <li>Purely Functional Parrallelism</li>
+                                    <li>Property Based Testing</li>
+                                </td>
+                                <td>
+                                    <li>Parser Combinators</li>
+                                    <li>Monoids</li>
+                                    <li>Monads</li>
+                                    <li>Applicative Functors</li>
+                                    <li>External Effects and I/O</li>
+                                    <li>Local Effects and Mutable State</li>
+                                    <li>Stream Processing and Incremental I/O</li>
+                                </td>
+                            </tr>
+                        </table>
+                    </center>
+                </section>
+
+                <section>
 					<h2>Afterword</h2>
 					<ul>
 						<li>Functional Programming in Scala, Chiusano and Bjarnason</li>
