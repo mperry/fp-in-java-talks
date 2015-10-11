@@ -16,11 +16,11 @@ import static fj.P.p;
 public class Solutions {
 
 	static <S, A> State<S, A> constant(A a) {
-		return State.<S, A>unit(s -> P.p(s, a));
+		return State.unit(s -> P.p(s, a));
 	}
 	
 	static <S, A, B> State<S, B> map(State<S, A> st, F<A, B> f){
-		return State.<S, B>unit(s -> {
+		return State.unit(s -> {
 			P2<S, A> p = st.run(s);
 			B b = f.f(p._2());
 			return P.p(p._1(), b);
@@ -28,7 +28,7 @@ public class Solutions {
 	}
 
 	static <S, A, B, C> State<S, C> map2(State<S, A> st1, State<S, B> st2, F2<A, B, C> f) {
-		return State.<S, C>unit(s -> {
+		return State.unit(s -> {
 			P2<S, A> p1 = st1.run(s);
 			P2<S, B> p2 = st2.run(p1._1());
 			C c = f.f(p1._2(), p2._2());
@@ -37,7 +37,7 @@ public class Solutions {
 	}
 
 	static <S, A, B> State<S, B> flatMap(State<S, A> st1, F<A, State<S, B>> f) {
-		return State.<S, B>unit(s -> {
+		return State.unit(s -> {
 			P2<S, A> p = st1.run(s);
 			State<S, B> st2 = f.f(p._2());
 			return st2.run(p._1());
