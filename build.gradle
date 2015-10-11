@@ -4,6 +4,7 @@ apply plugin: 'java'
 defaultTasks "build"
 
 repositories {
+    mavenLocal()
     jcenter()
 }
 
@@ -13,5 +14,5 @@ dependencies {
 	compile 'org.immutables:value:2.0.18'
     compile 'org.slf4j:slf4j-api:1.7.12'
     compile 'junit:junit:4.12'
-    compile 'org.functionaljava:functionaljava:4.4'
+    compile 'org.functionaljava:functionaljava:4.5-SNAPSHOT'
 }
