@@ -15,7 +15,7 @@ public class DemoTest {
     static int sum2(Seq<Integer> ints) {
         int n = ints.length();
         if (n <= 1) {
-            return ints.headOption().orSome(0);
+            return n == 0 ? 0 : ints.head();
         } else {
             P2<Seq<Integer>, Seq<Integer>> p = ints.split(n / 2);
             return sum2(p._1()) + sum2(p._2());
@@ -25,7 +25,7 @@ public class DemoTest {
     static int sum3(Seq<Integer> ints) {
         int n = ints.length();
         if (n <= 1) {
-            return ints.headOption().orSome(0);
+            return n == 0 ? 0 : ints.head();
         } else {
             P2<Seq<Integer>, Seq<Integer>> p = ints.split(n / 2);
             Par<Integer> l = Par.unit(() -> sum3(p._1()));
